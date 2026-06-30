@@ -18,6 +18,9 @@
     "lint": "eslint .",
     "test": "vitest run"
   },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {
     "@lifeos/eslint-config": "workspace:*",
     "@lifeos/tsconfig": "workspace:*",

@@ -1,11 +1,14 @@
 // @lifeos/contracts — the public surface of the LifeOS platform.
 //
-// Phase 01 ships this as an intentional placeholder. The real platform contracts
-// (Tool, UnifiedContext, SkillManifest, ProviderPort, CapabilityKey, DomainEvent,
-// LifeOSError, ApiResponse, ...) are defined and FROZEN starting in Phase 02/03.
-// See docs/06_PROJECT_STATE.md for the frozen-contract register and version.
+// Interfaces here are versioned and, once listed as frozen in docs/06_PROJECT_STATE.md,
+// may only change via an ADR + version bump. The full contract set (Tool,
+// UnifiedContext, SkillManifest, ProviderPort, CapabilityKey, DomainEvent, ...) grows
+// from Phase 03 onward; Phase 02 adds the API envelopes and LifeOSError.
 
 /** The semantic version of the published contract surface. */
-export const CONTRACTS_VERSION = '0.0.0' as const;
+export const CONTRACTS_VERSION = '0.1.0' as const;
 
 export type ContractsVersion = typeof CONTRACTS_VERSION;
+
+export * from './api/envelope.js';
+export * from './api/errors.js';

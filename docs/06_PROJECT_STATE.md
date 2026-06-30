@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 01 complete._ Ready to start Phase 02. |
-| **Next Phase** | [phase-02 — Backend Bootstrap (NestJS)](../implementation/phase-02-backend.md) |
-| **Last completed phase** | 01 — Foundation & Monorepo |
-| **Contract version** (`@lifeos/contracts`) | `0.0.0` (placeholder package created; real contracts land in phase-02/03) |
+| **Current Phase** | _Phase 02 complete._ Ready to start Phase 03. |
+| **Next Phase** | [phase-03 — Platform Contracts](../implementation/phase-03-platform-contracts.md) |
+| **Last completed phase** | 02 — Backend Bootstrap (NestJS) |
+| **Contract version** (`@lifeos/contracts`) | `0.1.0` — `ApiResponse`, `ApiError`, `LifeOSError`, `ErrorCodes` published & frozen |
 | **Database version** (latest migration) | `0000` (none) |
-| **API version** | unversioned (no API yet) |
-| **Repo state** | Monorepo scaffolded (Turborepo + pnpm). Packages: `@lifeos/api`, `@lifeos/contracts`, `@lifeos/config`, `@lifeos/tsconfig`, `@lifeos/eslint-config`. Full gate (lint/typecheck/test/build) green. On branch `phase-01-foundation`. |
+| **API version** | `v1` (URI versioning enabled; `/v1/health` live) |
+| **Repo state** | NestJS API boots (`/v1/health` → success envelope; unknown route → error envelope; invalid config fails fast). Packages: `@lifeos/api`, `@lifeos/contracts`, `@lifeos/config`, `@lifeos/tsconfig`, `@lifeos/eslint-config`. Full gate green. Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -35,10 +35,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | # | Phase | Date | PR | Notes |
 |---|-------|------|----|----|
 | 01 | Foundation & Monorepo | 2026-06-30 | (branch `phase-01-foundation`) | Turborepo+pnpm scaffold; dep-direction guardrail + negative test; CI; full gate green |
+| 02 | Backend Bootstrap (NestJS) | 2026-06-30 | (branch `phase-01-foundation`) | NestJS app, `/v1` versioning, global ValidationPipe + exception filter (envelope), request-id ALS context, structured redacting logger, health module; contracts `0.1.0` frozen; 11 api tests + runtime boot verified |
 
 ## Pending phases
 
-Phases [02–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
+Phases [03–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
 
 ## Frozen public contracts
 
@@ -46,9 +47,11 @@ Phases [02–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and depe
 
 | Contract | Version | Defined in phase | Notes |
 |----------|---------|------------------|-------|
-| _none yet_ | — | — | — |
+| `ApiResponse<T>` / `ApiResponseMeta` | 0.1.0 | 02 | Standard success envelope |
+| `ApiError` / `ApiErrorBody` | 0.1.0 | 02 | Standard error envelope |
+| `LifeOSError` / `ErrorCodes` | 0.1.0 | 02 | Typed platform error + code enum |
 
-Expected early contracts (will be frozen as they land): `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `LifeOSError`.
+Expected next contracts (frozen as they land): `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent` (phase 03).
 
 ## Architecture decisions in force
 
@@ -77,6 +80,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | Batch 2 authored: implementation/ phases 01–36 (01–10 detailed, 11–36 scaffolds) | CTO |
 | 2026-06-30 | Batch 3 authored: prompts/ phase-01..36 (one AI-coding prompt per phase) | CTO |
 | 2026-06-30 | **Phase 01 implemented**: git init, Turborepo+pnpm monorepo, shared tsconfig/eslint-config (dep-direction guardrail + negative test), prettier/commitlint, CI workflow, placeholder packages (`@lifeos/contracts`, `@lifeos/config`, `@lifeos/api`). Full gate green (12/12 tasks). | CTO |
+| 2026-06-30 | **Phase 02 implemented**: NestJS bootstrap (`/v1` URI versioning), global ValidationPipe + `AllExceptionsFilter` (standard envelope), request-id ALS context + middleware, structured redacting logger, hexagonal health module, typed `@lifeos/config` loader (zod, fail-fast). Contracts `0.1.0` (envelopes + `LifeOSError`) frozen. Runtime boot + 11 api tests verified; full gate green. | CTO |
 
 ---
 
