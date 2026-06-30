@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 04 complete._ Ready to start Phase 05. |
-| **Next Phase** | [phase-05 — Identity & Auth](../implementation/phase-05-identity-auth.md) ⚠️ needs Supabase Auth (or a dev auth adapter) |
-| **Last completed phase** | 04 — Database Foundation + RLS |
-| **Contract version** (`@lifeos/contracts`) | `0.2.0` (unchanged in phase 04) |
-| **Database version** (latest migration) | `0004_audit_logs` (schemas, users, outbox, audit_logs; RLS active) |
-| **API version** | `v1` (URI versioning enabled; `/v1/health` live) |
-| **Repo state** | DB foundation on local Postgres: `DatabasePort` + `PgDatabaseAdapter` (service/user security contexts), forward-only migration runner + `migrate` CLI, RLS proven by live cross-user denial test. Packages unchanged. Full gate green (16 api tests). Branch `phase-01-foundation`. |
+| **Current Phase** | _Phase 05 complete._ Ready to start Phase 06. |
+| **Next Phase** | [phase-06 — Event Bus + Outbox + BullMQ](../implementation/phase-06-event-bus.md) ⚠️ needs Redis running |
+| **Last completed phase** | 05 — Identity & Auth |
+| **Contract version** (`@lifeos/contracts`) | `0.3.0` — adds `AuthUser` |
+| **Database version** (latest migration) | `0004_audit_logs` (unchanged in phase 05) |
+| **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session` live) |
+| **Repo state** | Auth behind `AuthPort` with a local dev-JWT adapter (Supabase deferred); `AuthGuard` + `@CurrentUser`, user provisioning into `platform.users`, `userId`↔`auth.uid()` alignment proven. Full gate green (20 api tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -38,10 +38,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 02 | Backend Bootstrap (NestJS) | 2026-06-30 | (branch `phase-01-foundation`) | NestJS app, `/v1` versioning, global ValidationPipe + exception filter (envelope), request-id ALS context, structured redacting logger, health module; contracts `0.1.0` frozen; 11 api tests + runtime boot verified |
 | 03 | Platform Contracts | 2026-06-30 | (branch `phase-01-foundation`) | `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`, naming validators + `validateSkillManifest`; contract tests + export-surface backward-compat guard; contracts `0.2.0` |
 | 04 | Database Foundation + RLS | 2026-06-30 | (branch `phase-01-foundation`) | Migrations 0001–0004 (schemas, users, outbox, audit_logs); `DatabasePort`+`PgDatabaseAdapter` (service/user contexts); migration runner + CLI; RLS cross-user denial test green; CI Postgres service added |
+| 05 | Identity & Auth | 2026-06-30 | (branch `phase-01-foundation`) | `AuthPort` + dev-JWT adapter (Supabase deferred), `AuthGuard` + `@CurrentUser`, user provisioning (`platform.users`), `/v1/auth/session` (dev) + `/v1/me`; `userId`↔`auth.uid()` alignment test; contracts `0.3.0` (`AuthUser`) |
 
 ## Pending phases
 
-Phases [05–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
+Phases [06–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
 
 ## Frozen public contracts
 
@@ -52,6 +53,7 @@ Phases [05–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and depe
 | `ApiResponse<T>` / `ApiResponseMeta` | 0.1.0 | 02 | Standard success envelope |
 | `ApiError` / `ApiErrorBody` | 0.1.0 | 02 | Standard error envelope |
 | `LifeOSError` / `ErrorCodes` | 0.1.0 | 02 | Typed platform error + code enum |
+| `AuthUser` | 0.3.0 | 05 | Authenticated principal (id == RLS auth.uid()) |
 | `CapabilityKey` / `PermissionDecision` | 0.2.0 | 03 | Capability-based access primitives |
 | `Tool` / `ToolResult` / `JSONSchema` | 0.2.0 | 03 | The unit the Planner calls |
 | `UnifiedContext` / `ContextProvider` | 0.2.0 | 03 | The single data boundary for Skills |
@@ -97,6 +99,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 02 implemented**: NestJS bootstrap (`/v1` URI versioning), global ValidationPipe + `AllExceptionsFilter` (standard envelope), request-id ALS context + middleware, structured redacting logger, hexagonal health module, typed `@lifeos/config` loader (zod, fail-fast). Contracts `0.1.0` (envelopes + `LifeOSError`) frozen. Runtime boot + 11 api tests verified; full gate green. | CTO |
 | 2026-06-30 | **Phase 03 implemented**: full platform contract surface in `@lifeos/contracts` 0.2.0 (`Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`); naming validators + `validateSkillManifest`; contract tests (11) + export-surface backward-compat guard. Full gate green. | CTO |
 | 2026-06-30 | **Phase 04 implemented** (local Postgres per user decision, KI-003): migrations 0001–0004 (schemas, users+RLS, outbox, audit_logs), `auth.uid()` emulation + `lifeos_app` role, `DatabasePort`+`PgDatabaseAdapter` (service/user contexts), forward-only migration runner + `migrate` CLI, `DatabaseModule`. Live RLS cross-user denial test + updated_at + outbox tests green (16 api tests). CI gains a postgres:16 service. DB version `0004`. | CTO |
+| 2026-06-30 | **Phase 05 implemented**: `IdentityModule` — `AuthPort` + `DevAuthAdapter` (HS256 JWT, secret from config; Supabase adapter deferred), `AuthGuard` + `@CurrentUser`, `PgUserRepository` provisioning into `platform.users`, `ProvisionUserService`, `/v1/auth/session` (dev-only mint) + `/v1/me`. `userId` bound into request context; `userId`↔RLS `auth.uid()` alignment proven. Contracts `0.3.0` (`AuthUser`). Full gate green (20 api tests). | CTO |
 
 ---
 

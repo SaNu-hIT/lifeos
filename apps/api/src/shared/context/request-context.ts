@@ -7,6 +7,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
  */
 export interface RequestContext {
   requestId: string;
+  /** Set by the auth guard once a request is authenticated (phase-05). */
+  userId?: string;
 }
 
 const storage = new AsyncLocalStorage<RequestContext>();

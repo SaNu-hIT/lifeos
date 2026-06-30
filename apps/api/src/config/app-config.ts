@@ -8,6 +8,9 @@ export const AppConfigSchema = z.object({
   // Postgres connection. Local default is the dev database; in deployment this is
   // the Supabase/managed Postgres URL (docs/adr/adr-0010-supabase-baas.md).
   DATABASE_URL: z.string().url().default('postgres://localhost:5432/lifeos_dev'),
+  // Secret for the local dev JWT auth adapter. MUST be overridden in any non-local
+  // environment (the Supabase auth adapter replaces this in deployment — KI-003).
+  AUTH_JWT_SECRET: z.string().min(8).default('dev-insecure-secret-change-me'),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

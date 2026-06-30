@@ -5,9 +5,10 @@ import { RequestIdMiddleware } from './shared/context/request-id.middleware.js';
 import { AllExceptionsFilter } from './shared/http/all-exceptions.filter.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 
 @Module({
-  imports: [DatabaseModule, HealthModule],
+  imports: [DatabaseModule, HealthModule, IdentityModule],
   providers: [
     // Validated config, loaded (and validated) once at construction.
     { provide: APP_CONFIG, useFactory: () => loadAppConfig() },
