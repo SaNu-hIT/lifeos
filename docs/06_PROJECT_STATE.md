@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 06 complete._ Ready to start Phase 07. |
-| **Next Phase** | [phase-07 — Permission Engine](../implementation/phase-07-permission-engine.md) (Postgres-only; no new infra) |
-| **Last completed phase** | 06 — Event Bus + Outbox + BullMQ |
-| **Contract version** (`@lifeos/contracts`) | `0.3.0` (unchanged in phase 06) |
-| **Database version** (latest migration) | `0005_processed_events` |
+| **Current Phase** | _Phase 07 complete._ Ready to start Phase 08. |
+| **Next Phase** | [phase-08 — Subscription Engine](../implementation/phase-08-subscription-engine.md) (Postgres-only; no new infra) |
+| **Last completed phase** | 07 — Permission Engine |
+| **Contract version** (`@lifeos/contracts`) | `0.4.0` — adds `PermissionPort` |
+| **Database version** (latest migration) | `0006_capabilities` |
 | **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session` live) |
-| **Repo state** | Event backbone live: transactional outbox (`EventBusPort`/`PgEventBus`), `OutboxRelay`→BullMQ, idempotent dispatch (`SubscriberRegistry`+`DedupeStore`), `EventsRuntime` (worker+relay loop, test-safe). BullMQ owns its Redis connections. Full gate green (24 api tests). Branch `phase-01-foundation`. |
+| **Repo state** | Capability-based authorization live: `PermissionPort`/`PgPermissionEngine` (`can`/`capabilitiesFor`, deny-by-default), Redis-cached capability set w/ invalidation, denials audited. Shared `CacheModule` + `AuditModule` added. Full gate green (28 api tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -40,10 +40,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 04 | Database Foundation + RLS | 2026-06-30 | (branch `phase-01-foundation`) | Migrations 0001–0004 (schemas, users, outbox, audit_logs); `DatabasePort`+`PgDatabaseAdapter` (service/user contexts); migration runner + CLI; RLS cross-user denial test green; CI Postgres service added |
 | 05 | Identity & Auth | 2026-06-30 | (branch `phase-01-foundation`) | `AuthPort` + dev-JWT adapter (Supabase deferred), `AuthGuard` + `@CurrentUser`, user provisioning (`platform.users`), `/v1/auth/session` (dev) + `/v1/me`; `userId`↔`auth.uid()` alignment test; contracts `0.3.0` (`AuthUser`) |
 | 06 | Event Bus + Outbox + BullMQ | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0005 (`processed_events`); `EventBusPort`/`PgEventBus` (transactional outbox), `OutboxRelay`, BullMQ `EventQueue`/`EventWorker`, `SubscriberRegistry`+`DedupeStore`+`IdempotentDispatcher`, `EventsRuntime`; 4 event tests (atomicity, relay, idempotency, e2e); CI redis:7 service |
+| 07 | Permission Engine | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0006 (`catalog.capabilities`, `billing.capability_grants`); `PermissionPort`/`PgPermissionEngine` (deny-by-default, multi-source aggregation, expiry); shared `CacheModule` (Redis) + `AuditModule`; cache invalidation; denials audited; contracts `0.4.0`; 4 permission tests |
 
 ## Pending phases
 
-Phases [07–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
+Phases [08–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
 
 ## Frozen public contracts
 
@@ -56,6 +57,7 @@ Phases [07–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and depe
 | `LifeOSError` / `ErrorCodes` | 0.1.0 | 02 | Typed platform error + code enum |
 | `AuthUser` | 0.3.0 | 05 | Authenticated principal (id == RLS auth.uid()) |
 | `CapabilityKey` / `PermissionDecision` | 0.2.0 | 03 | Capability-based access primitives |
+| `PermissionPort` | 0.4.0 | 07 | Authorization boundary (can / capabilitiesFor) |
 | `Tool` / `ToolResult` / `JSONSchema` | 0.2.0 | 03 | The unit the Planner calls |
 | `UnifiedContext` / `ContextProvider` | 0.2.0 | 03 | The single data boundary for Skills |
 | `ProviderPort` / `ProviderHealth` | 0.2.0 | 03 | Provider SDK base |
@@ -102,6 +104,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 04 implemented** (local Postgres per user decision, KI-003): migrations 0001–0004 (schemas, users+RLS, outbox, audit_logs), `auth.uid()` emulation + `lifeos_app` role, `DatabasePort`+`PgDatabaseAdapter` (service/user contexts), forward-only migration runner + `migrate` CLI, `DatabaseModule`. Live RLS cross-user denial test + updated_at + outbox tests green (16 api tests). CI gains a postgres:16 service. DB version `0004`. | CTO |
 | 2026-06-30 | **Phase 05 implemented**: `IdentityModule` — `AuthPort` + `DevAuthAdapter` (HS256 JWT, secret from config; Supabase adapter deferred), `AuthGuard` + `@CurrentUser`, `PgUserRepository` provisioning into `platform.users`, `ProvisionUserService`, `/v1/auth/session` (dev-only mint) + `/v1/me`. `userId` bound into request context; `userId`↔RLS `auth.uid()` alignment proven. Contracts `0.3.0` (`AuthUser`). Full gate green (20 api tests). | CTO |
 | 2026-06-30 | **Phase 06 implemented**: `EventsModule` — transactional outbox (`EventBusPort`/`PgEventBus`, migration 0005 `processed_events`), `OutboxRelay`→BullMQ `EventQueue`/`EventWorker`, `SubscriberRegistry` + `DedupeStore` + `IdempotentDispatcher`, `EventsRuntime` (worker + relay loop; skipped under test for determinism). BullMQ owns its Redis connections (lazy; clean teardown). 4 event tests (atomic rollback, relay, idempotency, e2e via BullMQ). CI gains a redis:7 service. DB version `0005`. Full gate green (24 api tests). | CTO |
+| 2026-06-30 | **Phase 07 implemented**: `PermissionModule` — `PermissionPort`/`PgPermissionEngine` (deny-by-default `can`, `capabilitiesFor`, multi-source aggregation, grant expiry), migration 0006 (`catalog.capabilities`, `billing.capability_grants`+RLS). New shared `CacheModule` (Redis, lazy, error-tolerant) and `AuditModule` (`AuditLog`). Capability set cached w/ invalidation; denials audited. Contracts `0.4.0`. DB version `0006`. Full gate green (28 api tests). | CTO |
 
 ---
 
