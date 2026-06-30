@@ -62,8 +62,8 @@ describe('Phase 04 — database foundation + RLS (integration)', () => {
     }
   });
 
-  it('applied migrations up to 0004', async () => {
-    expect(await currentVersion(TEST_DB_URL)).toBe('0004_audit_logs');
+  it('applied migrations up to the latest', async () => {
+    expect(await currentVersion(TEST_DB_URL)).toBe('0005_processed_events');
   });
 
   it('RLS: a user in user-context sees ONLY their own row', async () => {

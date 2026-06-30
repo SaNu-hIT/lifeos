@@ -4,11 +4,12 @@ import { APP_CONFIG, loadAppConfig } from './config/app-config.js';
 import { RequestIdMiddleware } from './shared/context/request-id.middleware.js';
 import { AllExceptionsFilter } from './shared/http/all-exceptions.filter.js';
 import { DatabaseModule } from './shared/database/database.module.js';
+import { EventsModule } from './shared/events/events.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 
 @Module({
-  imports: [DatabaseModule, HealthModule, IdentityModule],
+  imports: [DatabaseModule, EventsModule, HealthModule, IdentityModule],
   providers: [
     // Validated config, loaded (and validated) once at construction.
     { provide: APP_CONFIG, useFactory: () => loadAppConfig() },

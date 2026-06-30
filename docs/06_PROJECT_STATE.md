@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 05 complete._ Ready to start Phase 06. |
-| **Next Phase** | [phase-06 — Event Bus + Outbox + BullMQ](../implementation/phase-06-event-bus.md) ⚠️ needs Redis running |
-| **Last completed phase** | 05 — Identity & Auth |
-| **Contract version** (`@lifeos/contracts`) | `0.3.0` — adds `AuthUser` |
-| **Database version** (latest migration) | `0004_audit_logs` (unchanged in phase 05) |
+| **Current Phase** | _Phase 06 complete._ Ready to start Phase 07. |
+| **Next Phase** | [phase-07 — Permission Engine](../implementation/phase-07-permission-engine.md) (Postgres-only; no new infra) |
+| **Last completed phase** | 06 — Event Bus + Outbox + BullMQ |
+| **Contract version** (`@lifeos/contracts`) | `0.3.0` (unchanged in phase 06) |
+| **Database version** (latest migration) | `0005_processed_events` |
 | **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session` live) |
-| **Repo state** | Auth behind `AuthPort` with a local dev-JWT adapter (Supabase deferred); `AuthGuard` + `@CurrentUser`, user provisioning into `platform.users`, `userId`↔`auth.uid()` alignment proven. Full gate green (20 api tests). Branch `phase-01-foundation`. |
+| **Repo state** | Event backbone live: transactional outbox (`EventBusPort`/`PgEventBus`), `OutboxRelay`→BullMQ, idempotent dispatch (`SubscriberRegistry`+`DedupeStore`), `EventsRuntime` (worker+relay loop, test-safe). BullMQ owns its Redis connections. Full gate green (24 api tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -39,10 +39,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 03 | Platform Contracts | 2026-06-30 | (branch `phase-01-foundation`) | `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`, naming validators + `validateSkillManifest`; contract tests + export-surface backward-compat guard; contracts `0.2.0` |
 | 04 | Database Foundation + RLS | 2026-06-30 | (branch `phase-01-foundation`) | Migrations 0001–0004 (schemas, users, outbox, audit_logs); `DatabasePort`+`PgDatabaseAdapter` (service/user contexts); migration runner + CLI; RLS cross-user denial test green; CI Postgres service added |
 | 05 | Identity & Auth | 2026-06-30 | (branch `phase-01-foundation`) | `AuthPort` + dev-JWT adapter (Supabase deferred), `AuthGuard` + `@CurrentUser`, user provisioning (`platform.users`), `/v1/auth/session` (dev) + `/v1/me`; `userId`↔`auth.uid()` alignment test; contracts `0.3.0` (`AuthUser`) |
+| 06 | Event Bus + Outbox + BullMQ | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0005 (`processed_events`); `EventBusPort`/`PgEventBus` (transactional outbox), `OutboxRelay`, BullMQ `EventQueue`/`EventWorker`, `SubscriberRegistry`+`DedupeStore`+`IdempotentDispatcher`, `EventsRuntime`; 4 event tests (atomicity, relay, idempotency, e2e); CI redis:7 service |
 
 ## Pending phases
 
-Phases [06–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
+Phases [07–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
 
 ## Frozen public contracts
 
@@ -85,7 +86,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 |---------|--------|-------|
 | Postgres (local) | **running** | local PG16 on :5432; DBs `lifeos_dev`, `lifeos_test`; migrations applied. `auth.uid()` emulated (KI-003). |
 | Supabase (Auth/Storage/Realtime) | not provisioned | deferred (KI-003); adapters in [phase-05](05_IMPLEMENTATION_ROADMAP.md) / deployment |
-| Redis | not provisioned | [phase-06](05_IMPLEMENTATION_ROADMAP.md) |
+| Redis (local) | **running** | local Redis on :6379; BullMQ events queue. CI uses a redis:7 service. |
 | OpenAI | not configured | [phase-14](05_IMPLEMENTATION_ROADMAP.md) |
 
 ## Change log
@@ -100,6 +101,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 03 implemented**: full platform contract surface in `@lifeos/contracts` 0.2.0 (`Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`); naming validators + `validateSkillManifest`; contract tests (11) + export-surface backward-compat guard. Full gate green. | CTO |
 | 2026-06-30 | **Phase 04 implemented** (local Postgres per user decision, KI-003): migrations 0001–0004 (schemas, users+RLS, outbox, audit_logs), `auth.uid()` emulation + `lifeos_app` role, `DatabasePort`+`PgDatabaseAdapter` (service/user contexts), forward-only migration runner + `migrate` CLI, `DatabaseModule`. Live RLS cross-user denial test + updated_at + outbox tests green (16 api tests). CI gains a postgres:16 service. DB version `0004`. | CTO |
 | 2026-06-30 | **Phase 05 implemented**: `IdentityModule` — `AuthPort` + `DevAuthAdapter` (HS256 JWT, secret from config; Supabase adapter deferred), `AuthGuard` + `@CurrentUser`, `PgUserRepository` provisioning into `platform.users`, `ProvisionUserService`, `/v1/auth/session` (dev-only mint) + `/v1/me`. `userId` bound into request context; `userId`↔RLS `auth.uid()` alignment proven. Contracts `0.3.0` (`AuthUser`). Full gate green (20 api tests). | CTO |
+| 2026-06-30 | **Phase 06 implemented**: `EventsModule` — transactional outbox (`EventBusPort`/`PgEventBus`, migration 0005 `processed_events`), `OutboxRelay`→BullMQ `EventQueue`/`EventWorker`, `SubscriberRegistry` + `DedupeStore` + `IdempotentDispatcher`, `EventsRuntime` (worker + relay loop; skipped under test for determinism). BullMQ owns its Redis connections (lazy; clean teardown). 4 event tests (atomic rollback, relay, idempotency, e2e via BullMQ). CI gains a redis:7 service. DB version `0005`. Full gate green (24 api tests). | CTO |
 
 ---
 

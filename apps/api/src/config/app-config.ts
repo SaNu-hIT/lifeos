@@ -11,6 +11,8 @@ export const AppConfigSchema = z.object({
   // Secret for the local dev JWT auth adapter. MUST be overridden in any non-local
   // environment (the Supabase auth adapter replaces this in deployment — KI-003).
   AUTH_JWT_SECRET: z.string().min(8).default('dev-insecure-secret-change-me'),
+  // Redis connection for BullMQ (queues) and short-term state.
+  REDIS_URL: z.string().url().default('redis://localhost:6379'),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;
