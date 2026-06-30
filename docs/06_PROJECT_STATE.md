@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 02 complete._ Ready to start Phase 03. |
-| **Next Phase** | [phase-03 — Platform Contracts](../implementation/phase-03-platform-contracts.md) |
-| **Last completed phase** | 02 — Backend Bootstrap (NestJS) |
-| **Contract version** (`@lifeos/contracts`) | `0.1.0` — `ApiResponse`, `ApiError`, `LifeOSError`, `ErrorCodes` published & frozen |
+| **Current Phase** | _Phase 03 complete._ Ready to start Phase 04. |
+| **Next Phase** | [phase-04 — Database Foundation + RLS](../implementation/phase-04-database.md) ⚠️ needs Postgres (Docker/Supabase) |
+| **Last completed phase** | 03 — Platform Contracts |
+| **Contract version** (`@lifeos/contracts`) | `0.2.0` — envelopes/errors + `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, naming validators (all frozen) |
 | **Database version** (latest migration) | `0000` (none) |
 | **API version** | `v1` (URI versioning enabled; `/v1/health` live) |
-| **Repo state** | NestJS API boots (`/v1/health` → success envelope; unknown route → error envelope; invalid config fails fast). Packages: `@lifeos/api`, `@lifeos/contracts`, `@lifeos/config`, `@lifeos/tsconfig`, `@lifeos/eslint-config`. Full gate green. Branch `phase-01-foundation`. |
+| **Repo state** | NestJS API boots; full contract surface published with contract tests + backward-compat guard. Packages: `@lifeos/api`, `@lifeos/contracts`, `@lifeos/config`, `@lifeos/tsconfig`, `@lifeos/eslint-config`. Full gate green. Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -36,10 +36,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 |---|-------|------|----|----|
 | 01 | Foundation & Monorepo | 2026-06-30 | (branch `phase-01-foundation`) | Turborepo+pnpm scaffold; dep-direction guardrail + negative test; CI; full gate green |
 | 02 | Backend Bootstrap (NestJS) | 2026-06-30 | (branch `phase-01-foundation`) | NestJS app, `/v1` versioning, global ValidationPipe + exception filter (envelope), request-id ALS context, structured redacting logger, health module; contracts `0.1.0` frozen; 11 api tests + runtime boot verified |
+| 03 | Platform Contracts | 2026-06-30 | (branch `phase-01-foundation`) | `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`, naming validators + `validateSkillManifest`; contract tests + export-surface backward-compat guard; contracts `0.2.0` |
 
 ## Pending phases
 
-Phases [03–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
+Phases [04–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md).
 
 ## Frozen public contracts
 
@@ -50,8 +51,15 @@ Phases [03–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and depe
 | `ApiResponse<T>` / `ApiResponseMeta` | 0.1.0 | 02 | Standard success envelope |
 | `ApiError` / `ApiErrorBody` | 0.1.0 | 02 | Standard error envelope |
 | `LifeOSError` / `ErrorCodes` | 0.1.0 | 02 | Typed platform error + code enum |
+| `CapabilityKey` / `PermissionDecision` | 0.2.0 | 03 | Capability-based access primitives |
+| `Tool` / `ToolResult` / `JSONSchema` | 0.2.0 | 03 | The unit the Planner calls |
+| `UnifiedContext` / `ContextProvider` | 0.2.0 | 03 | The single data boundary for Skills |
+| `ProviderPort` / `ProviderHealth` | 0.2.0 | 03 | Provider SDK base |
+| `DomainEvent` / `EventHandler` | 0.2.0 | 03 | Event backbone primitives |
+| `SkillManifest` (+ contributions) | 0.2.0 | 03 | Plugin manifest |
+| naming validators / `validateSkillManifest` | 0.2.0 | 03 | Contract-level invariants |
 
-Expected next contracts (frozen as they land): `Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent` (phase 03).
+A backward-compat guard ([export-surface.test.ts](../packages/contracts/src/export-surface.test.ts)) fails CI if a published export is removed/renamed.
 
 ## Architecture decisions in force
 
@@ -81,6 +89,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | Batch 3 authored: prompts/ phase-01..36 (one AI-coding prompt per phase) | CTO |
 | 2026-06-30 | **Phase 01 implemented**: git init, Turborepo+pnpm monorepo, shared tsconfig/eslint-config (dep-direction guardrail + negative test), prettier/commitlint, CI workflow, placeholder packages (`@lifeos/contracts`, `@lifeos/config`, `@lifeos/api`). Full gate green (12/12 tasks). | CTO |
 | 2026-06-30 | **Phase 02 implemented**: NestJS bootstrap (`/v1` URI versioning), global ValidationPipe + `AllExceptionsFilter` (standard envelope), request-id ALS context + middleware, structured redacting logger, hexagonal health module, typed `@lifeos/config` loader (zod, fail-fast). Contracts `0.1.0` (envelopes + `LifeOSError`) frozen. Runtime boot + 11 api tests verified; full gate green. | CTO |
+| 2026-06-30 | **Phase 03 implemented**: full platform contract surface in `@lifeos/contracts` 0.2.0 (`Tool`, `UnifiedContext`, `SkillManifest`, `ProviderPort`, `CapabilityKey`, `DomainEvent`, `JSONSchema`); naming validators + `validateSkillManifest`; contract tests (11) + export-surface backward-compat guard. Full gate green. | CTO |
 
 ---
 
