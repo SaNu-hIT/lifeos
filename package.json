@@ -1,0 +1,27 @@
+{
+  "name": "lifeos",
+  "version": "0.0.0",
+  "private": true,
+  "description": "LifeOS — an AI-first Personal Operating System (monorepo root).",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20 <23",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check": "turbo run lint typecheck test build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.3",
+    "typescript": "^5.6.2"
+  }
+}
