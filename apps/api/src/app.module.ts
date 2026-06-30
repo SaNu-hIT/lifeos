@@ -10,6 +10,7 @@ import { EventsModule } from './shared/events/events.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { PermissionModule } from './modules/permission/permission.module.js';
+import { SubscriptionModule } from './modules/subscription/subscription.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PermissionModule } from './modules/permission/permission.module.js';
     HealthModule,
     IdentityModule,
     PermissionModule,
+    SubscriptionModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
