@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { loadAppConfig } from '../../config/app-config.js';
 import { DATABASE, type DatabasePort } from '../../shared/database/database.port.js';
 import { AUTH_PORT } from './domain/ports/auth.port.js';
@@ -9,6 +9,7 @@ import { ProvisionUserService } from './application/provision-user.service.js';
 import { AuthGuard } from './adapters/in/auth.guard.js';
 import { IdentityController } from './adapters/in/identity.controller.js';
 
+@Global()
 @Module({
   controllers: [IdentityController],
   providers: [
@@ -21,6 +22,6 @@ import { IdentityController } from './adapters/in/identity.controller.js';
     ProvisionUserService,
     AuthGuard,
   ],
-  exports: [AUTH_PORT],
+  exports: [AUTH_PORT, AuthGuard],
 })
 export class IdentityModule {}

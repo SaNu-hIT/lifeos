@@ -4,6 +4,6 @@ import { CONTRACTS_VERSION } from './index.js';
 // Trivial test proving the test runner works end-to-end (Phase 01 acceptance criterion).
 describe('@lifeos/contracts', () => {
   it('exposes a contracts version', () => {
-    expect(CONTRACTS_VERSION).toBe('0.7.0');
+    expect(CONTRACTS_VERSION).toBe('0.8.0');
   });
 });

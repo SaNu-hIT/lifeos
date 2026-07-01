@@ -18,6 +18,7 @@ import { ConnectorRegistryModule } from './modules/connector-registry/connector-
 import { MemoryModule } from './modules/memory/memory.module.js';
 import { ConversationModule } from './modules/conversation/conversation.module.js';
 import { ContextModule } from './modules/context/context.module.js';
+import { OrchestratorModule } from './modules/orchestrator/orchestrator.module.js';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ContextModule } from './modules/context/context.module.js';
     MemoryModule,
     ConversationModule,
     ContextModule,
+    OrchestratorModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
