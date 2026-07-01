@@ -1,7 +1,9 @@
 import { type MiddlewareConsumer, Module, type NestModule, ValidationPipe } from '@nestjs/common';
-import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { APP_CONFIG, loadAppConfig } from './config/app-config.js';
 import { RequestIdMiddleware } from './shared/context/request-id.middleware.js';
+import { SecurityHeadersMiddleware } from './shared/http/security-headers.middleware.js';
+import { RateLimitGuard } from './shared/http/rate-limit.guard.js';
 import { AllExceptionsFilter } from './shared/http/all-exceptions.filter.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { CacheModule } from './shared/cache/cache.module.js';
@@ -56,6 +58,8 @@ import { SkillHostModule } from './modules/skill-host/skill-host.module.js';
     { provide: APP_CONFIG, useFactory: () => loadAppConfig() },
     // Standard error envelope for every uncaught exception.
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    // Edge rate limiting (per userId/IP; no-op when RATE_LIMIT_RPM=0).
+    { provide: APP_GUARD, useClass: RateLimitGuard },
     // Validate + transform all incoming DTOs; reject unknown properties.
     {
       provide: APP_PIPE,
@@ -65,6 +69,7 @@ import { SkillHostModule } from './modules/skill-host/skill-host.module.js';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    // Security headers first, then request-id/context for the rest of the chain.
+    consumer.apply(SecurityHeadersMiddleware, RequestIdMiddleware).forRoutes('*');
   }
 }

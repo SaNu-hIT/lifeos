@@ -17,6 +17,9 @@ export const AppConfigSchema = z.object({
   // provider; 'openai' etc. are added later and require credentials.
   AI_PROVIDER: z.string().default('local'),
   OPENAI_API_KEY: z.string().optional(),
+  // Requests per minute per principal (userId or IP) at the API edge. 0 disables
+  // limiting — the default for local/test; production overrides it (docs/10 §5).
+  RATE_LIMIT_RPM: z.coerce.number().int().min(0).default(0),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

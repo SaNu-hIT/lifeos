@@ -4,12 +4,13 @@
 // may only change via an ADR + version bump (semver: additive = minor, breaking = major).
 
 /** The semantic version of the published contract surface. */
-export const CONTRACTS_VERSION = '0.9.0' as const;
+export const CONTRACTS_VERSION = '0.10.0' as const;
 
 export type ContractsVersion = typeof CONTRACTS_VERSION;
 
 // API edge
 export * from './api/envelope.js';
+export * from './api/pagination.js';
 export * from './api/errors.js';
 
 // Identity
