@@ -15,6 +15,7 @@ import { SubscriptionModule } from './modules/subscription/subscription.module.j
 import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module.js';
 import { SkillRegistryModule } from './modules/skill-registry/skill-registry.module.js';
 import { ConnectorRegistryModule } from './modules/connector-registry/connector-registry.module.js';
+import { MemoryModule } from './modules/memory/memory.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConnectorRegistryModule } from './modules/connector-registry/connector-
     ToolRegistryModule,
     SkillRegistryModule,
     ConnectorRegistryModule,
+    MemoryModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
