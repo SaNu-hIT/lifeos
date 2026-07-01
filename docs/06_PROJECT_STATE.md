@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 09 complete._ Ready to start Phase 10. |
-| **Next Phase** | [phase-10 — Skill Registry & Skill SDK](../implementation/phase-10-skill-registry.md) (no new infra) |
-| **Last completed phase** | 09 — Tool Registry |
-| **Contract version** (`@lifeos/contracts`) | `0.5.0` — adds `ToolRegistryPort` / `ToolExecutionResult` |
-| **Database version** (latest migration) | `0007_subscriptions` |
+| **Current Phase** | _Phase 10 complete._ Ready to start Phase 11. |
+| **Next Phase** | [phase-11 — Connector Registry & Provider SDK](../implementation/phase-11-connector-registry.md) (no new infra) |
+| **Last completed phase** | 10 — Skill Registry & Skill SDK |
+| **Contract version** (`@lifeos/contracts`) | `0.6.0` — adds `SkillRegistryPort` / `SkillDescriptor` |
+| **Database version** (latest migration) | `0008_skills` |
 | **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session` live) |
-| **Repo state** | M2 begun. `ToolRegistry` (validate input → capability check → confirmation → execute → validate output → audit); ajv `SchemaValidator`; stateless HMAC confirmation tokens. A malformed/unauthorized call never reaches a handler. Full gate green (38 api tests). Branch `phase-01-foundation`. |
+| **Repo state** | **LifeOS is now a platform, not an app.** `SkillRegistry` registers Skills from manifests (core imports none), checks `contractVersion` via semver, forwards tools to the Tool Registry, persists a summary; per-user enable/disable. New `@lifeos/skill-sdk` (`defineSkill`, `runSkillContractTests`) + `@lifeos/skill-sample` reference Skill. Full gate green (43 api+skill tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -43,10 +43,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 07 | Permission Engine | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0006 (`catalog.capabilities`, `billing.capability_grants`); `PermissionPort`/`PgPermissionEngine` (deny-by-default, multi-source aggregation, expiry); shared `CacheModule` (Redis) + `AuditModule`; cache invalidation; denials audited; contracts `0.4.0`; 4 permission tests |
 | 08 | Subscription Engine | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0007 (`billing.plans`, `plan_capabilities` data-map, `subscriptions`); `SubscriptionService.changePlan/startTrial` materializes grants + invalidates permission cache; `BillingPort` DB stub; 3 tests (plan→grant→permission, trial expiry, idempotency). **M1 (platform spine) complete.** |
 | 09 | Tool Registry | 2026-06-30 | (branch `phase-01-foundation`) | `ToolRegistryPort`/`ToolExecutionResult` (contracts `0.5.0`); `ToolRegistry` (validate→permit→confirm→execute→validate→audit), ajv `SchemaValidator`, HMAC confirmation tokens; capability gate via `PermissionPort`, executions audited; 7 unit tests |
+| 10 | Skill Registry & Skill SDK | 2026-06-30 | (branch `phase-01-foundation`) | `SkillRegistryPort`/`SkillDescriptor` (contracts `0.6.0`); `@lifeos/skill-sdk` (`defineSkill`, `checkSkillContract`, `runSkillContractTests`); `SkillRegistry` (manifest register, semver contract-compat, forward tools→Tool Registry, persist, per-user enable/disable), migration 0008 (`catalog.skills`, `catalog.user_skills`); `@lifeos/skill-sample` reference Skill; core imports no Skill; 3 registry + 2 sample tests |
 
 ## Pending phases
 
-Phases [10–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md). **M2 (plugin framework): 09 done; 10–11 next.**
+Phases [11–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and dependencies: [05 Roadmap](05_IMPLEMENTATION_ROADMAP.md). **M2 (plugin framework): 09–10 done; 11 next.**
 
 ## Frozen public contracts
 
@@ -62,6 +63,7 @@ Phases [10–36](05_IMPLEMENTATION_ROADMAP.md) are pending. Build order and depe
 | `PermissionPort` | 0.4.0 | 07 | Authorization boundary (can / capabilitiesFor) |
 | `Tool` / `ToolResult` / `JSONSchema` | 0.2.0 | 03 | The unit the Planner calls |
 | `ToolRegistryPort` / `ToolExecutionResult` | 0.5.0 | 09 | Tool execution safety boundary |
+| `SkillRegistryPort` / `SkillDescriptor` | 0.6.0 | 10 | Skill registration boundary |
 | `UnifiedContext` / `ContextProvider` | 0.2.0 | 03 | The single data boundary for Skills |
 | `ProviderPort` / `ProviderHealth` | 0.2.0 | 03 | Provider SDK base |
 | `DomainEvent` / `EventHandler` | 0.2.0 | 03 | Event backbone primitives |
@@ -110,6 +112,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 07 implemented**: `PermissionModule` — `PermissionPort`/`PgPermissionEngine` (deny-by-default `can`, `capabilitiesFor`, multi-source aggregation, grant expiry), migration 0006 (`catalog.capabilities`, `billing.capability_grants`+RLS). New shared `CacheModule` (Redis, lazy, error-tolerant) and `AuditModule` (`AuditLog`). Capability set cached w/ invalidation; denials audited. Contracts `0.4.0`. DB version `0006`. Full gate green (28 api tests). | CTO |
 | 2026-06-30 | **Phase 08 implemented** (M1 complete): `SubscriptionModule` — migration 0007 (`billing.plans`, `plan_capabilities` data-driven map, `subscriptions`+RLS); `SubscriptionService.changePlan/startTrial` materializes `capability_grants` (source-tagged) and invalidates the permission cache; `BillingPort` + DB-backed stub. Subscriptions reference capabilities, never Skills. 3 tests (plan→grant→permission, trial expiry, idempotency). DB version `0007`. Full gate green (31 api tests). | CTO |
 | 2026-06-30 | **Phase 09 implemented** (M2 begins): `ToolRegistryModule` — `ToolRegistry` executes tools through the safety boundary (ajv input/output validation, capability gate via `PermissionPort`, HMAC `requiresConfirmation` tokens, audit). A malformed/unauthorized call never reaches a handler. Contracts `0.5.0` (`ToolRegistryPort`, `ToolExecutionResult`). ajv dep added. 7 unit tests. Full gate green (38 api tests). | CTO |
+| 2026-06-30 | **Phase 10 implemented**: `SkillRegistryModule` — `SkillRegistry` registers Skills from manifests (core imports none; ADR-0001), semver `contractVersion` compat, forwards tools to the Tool Registry, persists a summary (migration 0008 `catalog.skills`/`user_skills`), per-user enable/disable. New `@lifeos/skill-sdk` (`defineSkill`/`runSkillContractTests`) + `@lifeos/skill-sample` reference Skill. Contracts `0.6.0` (`SkillRegistryPort`). semver dep added. DB version `0008`. Full gate green (43 api+skill tests). **LifeOS is now a platform.** | CTO |
 
 ---
 

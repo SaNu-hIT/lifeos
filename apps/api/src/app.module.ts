@@ -12,6 +12,7 @@ import { IdentityModule } from './modules/identity/identity.module.js';
 import { PermissionModule } from './modules/permission/permission.module.js';
 import { SubscriptionModule } from './modules/subscription/subscription.module.js';
 import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module.js';
+import { SkillRegistryModule } from './modules/skill-registry/skill-registry.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module
     PermissionModule,
     SubscriptionModule,
     ToolRegistryModule,
+    SkillRegistryModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
