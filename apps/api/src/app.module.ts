@@ -11,6 +11,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { PermissionModule } from './modules/permission/permission.module.js';
 import { SubscriptionModule } from './modules/subscription/subscription.module.js';
+import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SubscriptionModule } from './modules/subscription/subscription.module.j
     IdentityModule,
     PermissionModule,
     SubscriptionModule,
+    ToolRegistryModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
