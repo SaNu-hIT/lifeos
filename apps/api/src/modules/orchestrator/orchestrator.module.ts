@@ -7,14 +7,12 @@ import { CONVERSATION, type ConversationPort } from '../conversation/domain/port
 import { MEMORY, type MemoryPort } from '../memory/domain/ports/memory.port.js';
 import { ORCHESTRATOR } from './domain/ports/orchestrator.port.js';
 import { Orchestrator } from './orchestrator.js';
-import { NaivePlanner } from './naive-planner.js';
 import { ConversationsController } from './adapters/in/conversations.controller.js';
 
 @Module({
   controllers: [ConversationsController],
   providers: [
-    // Placeholder planner until phase-17 provides the AI planner for this token.
-    { provide: PLANNER, useClass: NaivePlanner },
+    // PLANNER is provided globally by PlannerModule (phase-17).
     {
       provide: ORCHESTRATOR,
       useFactory: (

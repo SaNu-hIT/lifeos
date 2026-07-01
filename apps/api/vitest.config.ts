@@ -9,6 +9,9 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     setupFiles: ['reflect-metadata'],
+    // Integration tests open real Postgres/Redis connections; run files sequentially
+    // to avoid exhausting connections (the suite is fast, ~2s).
+    fileParallelism: false,
   },
   plugins: [
     swc.vite({

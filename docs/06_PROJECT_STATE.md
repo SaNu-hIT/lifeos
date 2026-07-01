@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 16 complete — **the platform runs end-to-end**._ Ready to start Phase 17. |
-| **Next Phase** | [phase-17 — Planner](../implementation/phase-17-planner.md) (no new infra) |
-| **Last completed phase** | 16 — Conversation Orchestrator |
-| **Contract version** (`@lifeos/contracts`) | `0.8.0` — adds `PlannerPort` / `ExecutionPlan` |
+| **Current Phase** | _Phase 17 complete._ Ready to start Phase 18. |
+| **Next Phase** | [phase-18 — Workflow Engine](../implementation/phase-18-workflow-engine.md) (uses BullMQ; no new infra) |
+| **Last completed phase** | 17 — Planner |
+| **Contract version** (`@lifeos/contracts`) | `0.8.0` (unchanged; `PlanValidator`/`AIPlanner` are internal) |
 | **Database version** (latest migration) | `0011_conversations` |
-| **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session`, **`POST/GET /v1/conversations[...]/messages`**) |
-| **Repo state** | **End-to-end turn loop LIVE.** `Orchestrator.handleTurn`: persist user msg → assemble Context → plan → execute tools (permission + confirmation) → summarize (AI) → persist reply → write memory. Verified by a real HTTP turn (message→assistant reply→history). `NaivePlanner` placeholder until phase-17. Full gate green (64 tests). Branch `phase-01-foundation`. |
+| **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session`, `POST/GET /v1/conversations[...]/messages`) |
+| **Repo state** | Real `AIPlanner` now drives planning (replaced `NaivePlanner`): builds a tool-catalog prompt → AI → parses JSON → `PlanValidator` rejects unknown-tool/bad-args plans → degrades to conversational on unusable output. OpenAI planner drops in behind the same `AIProviderPort`. Test files now run sequentially (connection-safe). Full gate green (66 tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-07-01 |
 
 ## Completed phases
@@ -50,10 +50,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 13 | Context Engine | 2026-06-30 | (branch `phase-01-foundation`) | `ContextEnginePort`/`ContextEngine` assembles Unified Context (capabilities + memory + user + conversation + settings), composes `ContextProvider`s by scope, short-TTL cached; `ContextProviderRegistry`; null conversation/settings readers (pluggable for phase-15); 2 tests |
 | 15 | Conversation Engine | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0011 (`conversation.conversations/messages` +RLS); `ConversationPort`/`ConversationEngine` (start, append+outbox event in-txn, keyset history, recent turns); provides the real `ConversationReader` to the Context Engine (replaces null); 3 tests |
 | 16 | Conversation Orchestrator | 2026-07-01 | (branch `phase-01-foundation`) | `PlannerPort`/`ExecutionPlan` (contracts `0.8.0`); `Orchestrator.handleTurn` turn loop (persist→context→plan→execute+confirm→summarize→persist→memory); `POST/GET /v1/conversations[...]/messages` endpoints; `NaivePlanner` placeholder; 2 unit (turn+confirmation) + 2 HTTP e2e tests + live HTTP turn verified |
+| 17 | Planner | 2026-07-01 | (branch `phase-01-foundation`) | `PlannerModule` — `AIPlanner` (prompt→AI→parse JSON→validate; empty-plan fallback) + `PlanValidator` (rejects unknown-tool/bad-args plans before execution); replaced `NaivePlanner`; test files run sequentially (connection-safe); 7 tests |
 
 ## Pending phases
 
-Phases 17–36 pending ([roadmap](05_IMPLEMENTATION_ROADMAP.md)). **M3 (AI brain): 14, 12, 13, 15, 16 done; 17 (Planner) next, then 18 (Workflow). M3 nearly complete.**
+Phases 18–36 pending ([roadmap](05_IMPLEMENTATION_ROADMAP.md)). **M3 (AI brain): 14, 12, 13, 15, 16, 17 done; 18 (Workflow) is the last M3 phase.**
 
 ## Frozen public contracts
 
@@ -121,6 +122,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 08 implemented** (M1 complete): `SubscriptionModule` — migration 0007 (`billing.plans`, `plan_capabilities` data-driven map, `subscriptions`+RLS); `SubscriptionService.changePlan/startTrial` materializes `capability_grants` (source-tagged) and invalidates the permission cache; `BillingPort` + DB-backed stub. Subscriptions reference capabilities, never Skills. 3 tests (plan→grant→permission, trial expiry, idempotency). DB version `0007`. Full gate green (31 api tests). | CTO |
 | 2026-06-30 | **Phase 09 implemented** (M2 begins): `ToolRegistryModule` — `ToolRegistry` executes tools through the safety boundary (ajv input/output validation, capability gate via `PermissionPort`, HMAC `requiresConfirmation` tokens, audit). A malformed/unauthorized call never reaches a handler. Contracts `0.5.0` (`ToolRegistryPort`, `ToolExecutionResult`). ajv dep added. 7 unit tests. Full gate green (38 api tests). | CTO |
 | 2026-06-30 | **Phase 10 implemented**: `SkillRegistryModule` — `SkillRegistry` registers Skills from manifests (core imports none; ADR-0001), semver `contractVersion` compat, forwards tools to the Tool Registry, persists a summary (migration 0008 `catalog.skills`/`user_skills`), per-user enable/disable. New `@lifeos/skill-sdk` (`defineSkill`/`runSkillContractTests`) + `@lifeos/skill-sample` reference Skill. Contracts `0.6.0` (`SkillRegistryPort`). semver dep added. DB version `0008`. Full gate green (43 api+skill tests). **LifeOS is now a platform.** | CTO |
+| 2026-07-01 | **Phase 17 implemented**: `PlannerModule` — `AIPlanner` (implements `PlannerPort`) builds a tool-catalog planning prompt, calls the AI provider, parses the first JSON object from the output, and validates it via `PlanValidator`, which REJECTS any plan referencing an unknown/unavailable tool or with schema-invalid args (invalid calls never reach execution; docs/02 §7, docs/11 §2). Unusable model output degrades to an empty (conversational) plan. Replaces `NaivePlanner`; the OpenAI planner drops in behind the same `AIProviderPort`. Vitest now runs test files sequentially (`fileParallelism:false`) to keep integration tests connection-safe. 7 tests. Full gate green (66 tests). | CTO |
 | 2026-07-01 | **Phase 16 implemented** — THE PLATFORM RUNS END-TO-END: `OrchestratorModule` + `PlannerPort`/`ExecutionPlan` (contracts `0.8.0`). `Orchestrator.handleTurn` sequences the canonical turn: persist user message → assemble Context → plan (Planner) → execute tools via Tool Registry (permission-checked, `needs_confirmation` surfaced + resumed) → summarize via AI → persist assistant reply → write memory. Holds NO business logic (ADR-0004). `NaivePlanner` (empty plan) until phase-17. `ConversationsController`: `POST /v1/conversations`, `POST/GET /v1/conversations/:id/messages` (AuthGuard). IdentityModule made @Global + exports AuthGuard. Verified by 4 tests + a live HTTP turn (message → context → summarize → assistant reply → history). Full gate green (64 tests). | CTO |
 | 2026-06-30 | **Phase 15 implemented**: `ConversationModule` — migration 0011 (`conversation.conversations/messages`, RLS). `ConversationEngine` (start conversation, append message with `turn_id` grouping, keyset-paginated history, recent turns). Each append writes the message and publishes `conversation.message_appended` to the outbox in the SAME user-context transaction (ADR-0008). The engine also implements `ConversationReaderPort`, so `ContextModule` now resolves the real reader (null replaced). 3 tests (append+outbox, chronological recent turns, keyset pagination). DB version `0011`. Full gate green (60 tests). | CTO |
 | 2026-06-30 | **Phase 13 implemented**: `ContextModule` — `ContextEngine.assemble()` builds the permission-filtered Unified Context in parallel from `PermissionPort.capabilitiesFor` + `MemoryPort.retrieve` (intent-hinted) + user profile + conversation + settings, then composes registered `ContextProvider`s for the scope; short-TTL cached (per user+scope+intent — safe per-user). `ContextProviderRegistry`; pluggable `ConversationReaderPort`/`SettingsReaderPort` with null defaults (real conversation reader lands phase-15). 2 tests. Full gate green (57 tests). | CTO |

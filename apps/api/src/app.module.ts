@@ -18,6 +18,7 @@ import { ConnectorRegistryModule } from './modules/connector-registry/connector-
 import { MemoryModule } from './modules/memory/memory.module.js';
 import { ConversationModule } from './modules/conversation/conversation.module.js';
 import { ContextModule } from './modules/context/context.module.js';
+import { PlannerModule } from './modules/planner/planner.module.js';
 import { OrchestratorModule } from './modules/orchestrator/orchestrator.module.js';
 
 @Module({
@@ -37,6 +38,7 @@ import { OrchestratorModule } from './modules/orchestrator/orchestrator.module.j
     MemoryModule,
     ConversationModule,
     ContextModule,
+    PlannerModule,
     OrchestratorModule,
   ],
   providers: [
