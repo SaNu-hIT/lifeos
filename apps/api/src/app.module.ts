@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './shared/http/all-exceptions.filter.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { CacheModule } from './shared/cache/cache.module.js';
 import { AuditModule } from './shared/audit/audit.module.js';
+import { AiCoreModule } from './shared/ai/ai-core.module.js';
 import { EventsModule } from './shared/events/events.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
@@ -20,6 +21,7 @@ import { ConnectorRegistryModule } from './modules/connector-registry/connector-
     DatabaseModule,
     CacheModule,
     AuditModule,
+    AiCoreModule,
     EventsModule,
     HealthModule,
     IdentityModule,

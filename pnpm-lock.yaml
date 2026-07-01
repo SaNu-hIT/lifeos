@@ -26,6 +26,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@lifeos/ai-core':
+        specifier: workspace:*
+        version: link:../../packages/ai-core
       '@lifeos/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -133,6 +136,24 @@ importers:
       '@lifeos/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  packages/ai-core:
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)

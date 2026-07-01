@@ -13,6 +13,10 @@ export const AppConfigSchema = z.object({
   AUTH_JWT_SECRET: z.string().min(8).default('dev-insecure-secret-change-me'),
   // Redis connection for BullMQ (queues) and short-term state.
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
+  // AI provider selection (docs/adr/adr-0004). 'local' is the deterministic dev
+  // provider; 'openai' etc. are added later and require credentials.
+  AI_PROVIDER: z.string().default('local'),
+  OPENAI_API_KEY: z.string().optional(),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

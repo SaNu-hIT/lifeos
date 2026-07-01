@@ -39,4 +39,8 @@ export const CORE_FORBIDDEN_IMPORTS = [
   '@lifeos/connector-*',
 ];
 
+/** Skills must never call the LLM directly (docs/adr/adr-0004-ai-no-business-logic.md);
+ *  they expose needs as tools. Connectors likewise hold no AI logic. */
+export const SKILL_FORBIDDEN_IMPORTS = ['@lifeos/ai-core'];
+
 export default base;
