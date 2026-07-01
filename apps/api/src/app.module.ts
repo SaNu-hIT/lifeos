@@ -13,6 +13,7 @@ import { PermissionModule } from './modules/permission/permission.module.js';
 import { SubscriptionModule } from './modules/subscription/subscription.module.js';
 import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module.js';
 import { SkillRegistryModule } from './modules/skill-registry/skill-registry.module.js';
+import { ConnectorRegistryModule } from './modules/connector-registry/connector-registry.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SkillRegistryModule } from './modules/skill-registry/skill-registry.mod
     SubscriptionModule,
     ToolRegistryModule,
     SkillRegistryModule,
+    ConnectorRegistryModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.

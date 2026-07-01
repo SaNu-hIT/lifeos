@@ -118,6 +118,31 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.43)
 
+  connectors/sample:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/provider-sdk':
+        specifier: workspace:*
+        version: link:../../packages/provider-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   packages/config:
     dependencies:
       zod:
@@ -175,6 +200,28 @@ importers:
       typescript-eslint:
         specifier: ^8.7.0
         version: 8.62.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/provider-sdk:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
 
   packages/skill-sdk:
     dependencies:

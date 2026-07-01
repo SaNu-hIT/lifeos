@@ -1,4 +1,4 @@
-import { satisfies } from 'semver';
+import { gte, major, minVersion } from 'semver';
 import {
   CONTRACTS_VERSION,
   type SkillDescriptor,
@@ -26,10 +26,16 @@ export class SkillRegistry implements SkillRegistryPort {
     if (this.skills.has(manifest.key)) {
       throw new Error(`skill already registered: ${manifest.key}`);
     }
-    if (!satisfies(CONTRACTS_VERSION, manifest.contractVersion)) {
+    // Compatibility policy: the contract surface is ADDITIVE within a major line
+    // (the export-surface guard forbids removals; breaking changes bump the major +
+    // an ADR — docs/08). So a Skill is compatible when it targets the same major and
+    // the platform is at or above the Skill's minimum. This lets additive minor bumps
+    // ship without re-versioning every Skill.
+    const floor = minVersion(manifest.contractVersion);
+    if (!floor || major(CONTRACTS_VERSION) !== major(floor) || !gte(CONTRACTS_VERSION, floor)) {
       throw new Error(
         `skill "${manifest.key}" targets contract ${manifest.contractVersion}, ` +
-          `but the platform is ${CONTRACTS_VERSION}`,
+          `incompatible with platform ${CONTRACTS_VERSION}`,
       );
     }
 
