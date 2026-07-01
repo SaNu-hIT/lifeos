@@ -10,11 +10,16 @@ import { type SkillManifest } from '@lifeos/contracts';
 import { defineSkill } from '@lifeos/skill-sdk';
 import { createGroceryTools, type GroceryToolDeps } from './tools.js';
 import { createGroceryContextProvider } from './context.js';
+import {
+  createGroceryActivityProjection,
+  createGroceryNotification,
+  createGroceryWidgets,
+} from './surface.js';
 
 export function createGrocerySkill(deps: GroceryToolDeps): SkillManifest {
   return defineSkill({
     key: 'grocery',
-    version: '1.1.0',
+    version: '1.2.0',
     contractVersion: '^0.9.0',
     capabilities: [
       { key: 'grocery.read', description: 'Search products and build a cart' },
@@ -24,6 +29,10 @@ export function createGrocerySkill(deps: GroceryToolDeps): SkillManifest {
     // Personalizes the Unified Context with cart, order history, and staples so the
     // Planner can act on habits ("reorder my usual") — phase 24.
     contextProviders: [createGroceryContextProvider({ repository: deps.repository })],
+    // Surfaces: feed entry, notification, and home widgets on order placement — phase 26.
+    activityProjections: [createGroceryActivityProjection()],
+    notifications: [createGroceryNotification()],
+    widgets: createGroceryWidgets({ repository: deps.repository }),
   });
 }
 
@@ -35,3 +44,11 @@ export type { GroceryRepositoryPort } from './ports/grocery-repository.port.js';
 export { createGroceryTools, type GroceryToolDeps } from './tools.js';
 export { createGroceryContextProvider, type GroceryContextDeps } from './context.js';
 export { runGroceryProviderContractTests } from './provider-contract.js';
+export {
+  GROCERY_ORDER_PLACED,
+  createGroceryActivityProjection,
+  createGroceryNotification,
+  createGroceryWidgets,
+  type OrderPlacedPayload,
+  type GroceryWidgetDeps,
+} from './surface.js';

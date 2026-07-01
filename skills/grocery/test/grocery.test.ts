@@ -81,8 +81,16 @@ describe('@lifeos/skill-grocery', () => {
     const repository = new InMemoryRepo();
     const provider = new MockProvider();
     let seq = 0;
-    const skill = createGrocerySkill({ repository, provider, newId: () => `order-${(seq += 1)}` });
-    return { repository, provider, skill, tools: skill.tools };
+    const published: Array<{ type: string }> = [];
+    const skill = createGrocerySkill({
+      repository,
+      provider,
+      newId: () => `id-${(seq += 1)}`,
+      publish: async (event) => {
+        published.push(event);
+      },
+    });
+    return { repository, provider, skill, tools: skill.tools, published };
   }
 
   it('passes the skill contract kit', () => {
@@ -100,7 +108,7 @@ describe('@lifeos/skill-grocery', () => {
   });
 
   it('runs search → build cart → confirm → place order end-to-end', async () => {
-    const { tools, repository, provider } = setup();
+    const { tools, repository, provider, published } = setup();
     const ctx = ctxFor('u1');
 
     const found = (await tool(tools, 'grocery.search_products').handler(ctx, { query: 'milk' })) as {
@@ -125,11 +133,13 @@ describe('@lifeos/skill-grocery', () => {
       status: string;
       etaMinutes?: number;
     };
-    expect(order).toEqual({ orderId: 'order-1', status: 'placed', etaMinutes: 15 });
+    expect(order).toEqual({ orderId: 'id-1', status: 'placed', etaMinutes: 15 });
     expect(provider.submitted).toHaveLength(1); // went through the provider port
     expect(repository.orders[0]?.totalMinor).toBe(10000);
     // Cart is cleared after a successful order.
     expect((await repository.getCart('u1')).lines).toHaveLength(0);
+    // A grocery.order_placed event was published to drive the surfaces.
+    expect(published.map((e) => e.type)).toEqual(['grocery.order_placed']);
   });
 
   it('refuses to place an order with an empty cart (domain invariant)', async () => {

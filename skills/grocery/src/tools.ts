@@ -3,11 +3,12 @@
 // testable with fakes. userId + timestamps come from the Unified Context (no hidden
 // clocks/globals, docs/02 §8).
 
-import type { Tool, UnifiedContext } from '@lifeos/contracts';
+import type { DomainEvent, Tool, UnifiedContext } from '@lifeos/contracts';
 import type { Product } from './domain/types.js';
 import { addLine, cartTotalMinor, isEmpty } from './domain/cart.js';
 import type { GroceryProviderPort } from './ports/grocery-provider.port.js';
 import type { GroceryRepositoryPort } from './ports/grocery-repository.port.js';
+import { GROCERY_ORDER_PLACED, type OrderPlacedPayload } from './surface.js';
 
 export interface GroceryToolDeps {
   repository: GroceryRepositoryPort;
@@ -15,6 +16,9 @@ export interface GroceryToolDeps {
   /** Order-id factory, supplied by the composition root (deterministic in tests).
    *  Injected rather than imported so the Skill stays free of platform/runtime deps. */
   newId: () => string;
+  /** Publishes a domain event to the platform outbox (injected; no-op if absent).
+   *  Drives the surface contributions (activity/notification) in phase 26. */
+  publish?: (event: DomainEvent) => Promise<void>;
 }
 
 const PRODUCT_PROPS = {
@@ -142,6 +146,24 @@ export function createGroceryTools(deps: GroceryToolDeps): Tool[] {
       };
       await deps.repository.saveOrder(order);
       await deps.repository.clearCart(ctx.user.id);
+
+      // Announce the order so the surface engines react (activity/notification).
+      if (deps.publish) {
+        const payload: OrderPlacedPayload = {
+          orderId: order.id,
+          providerOrderId: order.providerOrderId,
+          itemCount: order.lines.length,
+          totalMinor: order.totalMinor,
+          etaMinutes: order.etaMinutes,
+        };
+        await deps.publish({
+          eventId: newId(),
+          type: GROCERY_ORDER_PLACED,
+          userId: ctx.user.id,
+          occurredAt: ctx.now,
+          payload,
+        });
+      }
       return { orderId: order.id, status: order.status, etaMinutes: order.etaMinutes };
     },
   };
