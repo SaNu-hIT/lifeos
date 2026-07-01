@@ -4,7 +4,7 @@ import type { Turn } from '@lifeos/contracts';
  *  Engine (phase-15) provides a real one. */
 export const CONVERSATION_READER = Symbol('CONVERSATION_READER');
 export interface ConversationReaderPort {
-  recent(conversationId: string, limit?: number): Promise<Turn[]>;
+  recent(conversationId: string, userId: string, limit?: number): Promise<Turn[]>;
 }
 export class NullConversationReader implements ConversationReaderPort {
   async recent(): Promise<Turn[]> {

@@ -38,7 +38,7 @@ export class ContextEngine implements ContextEnginePort {
       this.permissions.capabilitiesFor(input.userId),
       this.users.get(input.userId),
       this.memory.retrieve(input.userId, { query: input.intentHint ?? '', scope: input.scope }),
-      this.conversation.recent(input.conversationId),
+      this.conversation.recent(input.conversationId, input.userId),
       this.settings.get(input.userId),
     ]);
 

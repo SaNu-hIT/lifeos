@@ -7,7 +7,6 @@ import { CONTEXT_ENGINE } from './domain/ports/context-engine.port.js';
 import {
   CONVERSATION_READER,
   type ConversationReaderPort,
-  NullConversationReader,
   NullSettingsReader,
   SETTINGS_READER,
   type SettingsReaderPort,
@@ -21,8 +20,8 @@ import { ContextEngine } from './context.engine.js';
   providers: [
     { provide: CONTEXT_PROVIDER_REGISTRY, useClass: ContextProviderRegistry },
     { provide: UserReader, useFactory: (db: DatabasePort) => new UserReader(db), inject: [DATABASE] },
-    // Null readers until the Conversation Engine (phase-15) and a Settings store land.
-    { provide: CONVERSATION_READER, useClass: NullConversationReader },
+    // CONVERSATION_READER is provided globally by ConversationModule (phase-15).
+    // Settings has no store yet, so a null reader is used.
     { provide: SETTINGS_READER, useClass: NullSettingsReader },
     {
       provide: CONTEXT_ENGINE,
