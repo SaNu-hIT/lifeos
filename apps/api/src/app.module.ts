@@ -21,6 +21,7 @@ import { ContextModule } from './modules/context/context.module.js';
 import { PlannerModule } from './modules/planner/planner.module.js';
 import { OrchestratorModule } from './modules/orchestrator/orchestrator.module.js';
 import { WorkflowModule } from './modules/workflow/workflow.module.js';
+import { ActivityModule } from './modules/activity/activity.module.js';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { WorkflowModule } from './modules/workflow/workflow.module.js';
     PlannerModule,
     OrchestratorModule,
     WorkflowModule,
+    ActivityModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
