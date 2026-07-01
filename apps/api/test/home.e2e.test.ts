@@ -45,7 +45,7 @@ describe('Phase 21 — home widget engine (integration)', () => {
     engine.registerWidget({
       key: 'grocery.next_delivery',
       title: 'Next delivery',
-      capability: 'grocery.view',
+      requiredCapability: 'grocery.view',
       priority: 10,
       build: async () => ({ urgency: 0.9, props: { eta: '18:00' } }),
     });

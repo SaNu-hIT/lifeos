@@ -24,6 +24,7 @@ import { WorkflowModule } from './modules/workflow/workflow.module.js';
 import { ActivityModule } from './modules/activity/activity.module.js';
 import { NotificationModule } from './modules/notification/notification.module.js';
 import { HomeModule } from './modules/home/home.module.js';
+import { SkillHostModule } from './modules/skill-host/skill-host.module.js';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { HomeModule } from './modules/home/home.module.js';
     ActivityModule,
     NotificationModule,
     HomeModule,
+    SkillHostModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.

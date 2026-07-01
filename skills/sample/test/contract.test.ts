@@ -10,4 +10,10 @@ describe('@lifeos/skill-sample', () => {
   it('declares its tool namespaced under the skill key', () => {
     expect(sampleSkill.tools.every((t) => t.name.startsWith('sample.'))).toBe(true);
   });
+
+  it('contributes across the surface (activity, notification, widget)', () => {
+    expect(sampleSkill.activityProjections).toHaveLength(1);
+    expect(sampleSkill.notifications).toHaveLength(1);
+    expect(sampleSkill.widgets?.[0]?.requiredCapability).toBe('sample.use');
+  });
 });

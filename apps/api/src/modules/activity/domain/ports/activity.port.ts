@@ -1,27 +1,12 @@
-import type { DomainEvent } from '@lifeos/contracts';
+import type { ActivityEntry, ActivityProjection } from '@lifeos/contracts';
+
+export type { ActivityEntry, ActivityProjection };
 
 /** DI token for the ActivityEnginePort. */
 export const ACTIVITY_ENGINE = Symbol('ACTIVITY_ENGINE');
 
-export interface ActivityEntry {
-  userId: string;
-  kind: string;
-  title: string;
-  summary?: string;
-  deepLink?: string;
-  occurredAt: string;
-}
-
 export interface ActivityView extends ActivityEntry {
   id: string;
-}
-
-/** A Skill/engine-contributed projection: turns a domain event into a feed entry.
- *  Return null to skip. Registered as an idempotent subscriber. */
-export interface ActivityProjection {
-  key: string;
-  on: string; // domain event type
-  build(event: DomainEvent): ActivityEntry | null;
 }
 
 export interface ActivityPage {

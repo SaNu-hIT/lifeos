@@ -6,22 +6,15 @@ import type { Tool } from '../tool/tool.js';
 import type { JSONSchema } from '../tool/json-schema.js';
 import type { ContextProvider } from '../context/context.js';
 import type { EventHandler } from '../event/event.js';
+import type {
+  ActivityProjection,
+  NotificationDeclaration,
+  WidgetContribution,
+} from './contributions.js';
 
 export interface CapabilityDeclaration {
   key: CapabilityKey;
   description: string;
-}
-
-export interface WidgetContribution {
-  key: string;
-  requiredCapability: CapabilityKey;
-}
-
-export interface NotificationDeclaration {
-  key: string;
-  /** Domain event type that triggers this notification. */
-  on: string;
-  requiredCapability: CapabilityKey;
 }
 
 export interface EventHandlerRegistration {
@@ -37,8 +30,12 @@ export interface SkillManifest {
   capabilities: CapabilityDeclaration[];
   tools: Tool[];
   contextProviders?: ContextProvider[];
+  /** Home widgets contributed to the dynamic home (phase 21). */
   widgets?: WidgetContribution[];
+  /** Notification intents triggered by domain events (phase 20). */
   notifications?: NotificationDeclaration[];
+  /** Activity-feed projections from domain events (phase 19). */
+  activityProjections?: ActivityProjection[];
   eventHandlers?: EventHandlerRegistration[];
   configSchema?: JSONSchema;
 }

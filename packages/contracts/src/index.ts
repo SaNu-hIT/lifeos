@@ -4,7 +4,7 @@
 // may only change via an ADR + version bump (semver: additive = minor, breaking = major).
 
 /** The semantic version of the published contract surface. */
-export const CONTRACTS_VERSION = '0.8.0' as const;
+export const CONTRACTS_VERSION = '0.9.0' as const;
 
 export type ContractsVersion = typeof CONTRACTS_VERSION;
 
@@ -38,6 +38,7 @@ export * from './planner/planner.js';
 export * from './event/event.js';
 
 // Skills
+export * from './skill/contributions.js';
 export * from './skill/manifest.js';
 export * from './skill/skill-registry.js';
 

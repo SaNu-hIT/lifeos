@@ -39,8 +39,8 @@ export class HomeEngine implements HomeEnginePort {
     const eligible = [];
     for (const widget of this.widgets.values()) {
       if (prefs.get(widget.key)?.hidden) continue;
-      if (widget.capability) {
-        const decision = await this.permissions.can(userId, widget.capability);
+      if (widget.requiredCapability) {
+        const decision = await this.permissions.can(userId, widget.requiredCapability);
         if (!decision.allow) continue;
       }
       eligible.push(widget);
