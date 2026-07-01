@@ -34,3 +34,4 @@ export type { GroceryProviderPort, SubmittedOrder } from './ports/grocery-provid
 export type { GroceryRepositoryPort } from './ports/grocery-repository.port.js';
 export { createGroceryTools, type GroceryToolDeps } from './tools.js';
 export { createGroceryContextProvider, type GroceryContextDeps } from './context.js';
+export { runGroceryProviderContractTests } from './provider-contract.js';
