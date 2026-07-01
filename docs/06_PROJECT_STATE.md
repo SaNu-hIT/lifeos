@@ -19,13 +19,13 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 12 complete._ Ready to start Phase 13. |
-| **Next Phase** | [phase-13 — Context Engine](../implementation/phase-13-context-engine.md) (no new infra) |
-| **Last completed phase** | 12 — Memory Engine |
-| **Contract version** (`@lifeos/contracts`) | `0.7.0` (unchanged; `MemoryPort` is platform-internal) |
+| **Current Phase** | _Phase 13 complete._ Ready to start Phase 15. |
+| **Next Phase** | [phase-15 — Conversation Engine](../implementation/phase-15-conversation-engine.md) (no new infra) |
+| **Last completed phase** | 13 — Context Engine |
+| **Contract version** (`@lifeos/contracts`) | `0.7.0` (unchanged; `ContextEnginePort` is platform-internal) |
 | **Database version** (latest migration) | `0010_memory` |
 | **API version** | `v1` (`/v1/health`, `/v1/me`, `/v1/auth/session` live) |
-| **Repo state** | `MemoryEngine` live: writes facts/preferences/summaries (embedded via the AI provider), retrieves ranked by similarity × recency × importance, excludes expired, purges. Embeddings as jsonb + in-app cosine (pgvector deferred, KI-005). All memory RLS-scoped (user-context reads/writes). Full gate green (55 tests). Branch `phase-01-foundation`. |
+| **Repo state** | `ContextEngine` assembles the permission-filtered Unified Context (capabilities + memory + user + conversation + settings), composes Skill `ContextProvider`s by scope, short-TTL cached. Conversation/settings readers are pluggable (null until phase-15/settings). Full gate green (57 tests). Branch `phase-01-foundation`. |
 | **Last Updated** | 2026-06-30 |
 
 ## Completed phases
@@ -47,10 +47,11 @@ _None yet._ (When a phase completes, add a row: `| 01 | Foundation | 2026-… | 
 | 11 | Connector Registry & Provider SDK | 2026-06-30 | (branch `phase-01-foundation`) | `ConnectorRegistryPort`/`SelectionPolicy` (contracts `0.7.0`); `@lifeos/provider-sdk` (`defineConnector`, `runProviderContractTests`); `ConnectorRegistry` (register, select-by-policy w/ preferred + health failover + bulkhead, persist), migration 0009 (`catalog.connectors`); `@lifeos/connector-sample`; 6 registry + 1 sample tests. **M2 (plugin framework) complete.** |
 | 14 | AI Provider Abstraction | 2026-06-30 | (branch `phase-01-foundation`) | `@lifeos/ai-core`: `AIProviderPort` (`complete`/`stream`/`embed`) + deterministic `LocalAIProvider` (bag-of-words embeddings, no key); `createAIProvider` factory (OpenAI deferred); `AiCoreModule` (config-driven); ADR-0004 lint boundary (Skills ⊄ ai-core); 3 tests. Built ahead of 12/13 (Memory depends on the embedder). |
 | 12 | Memory Engine | 2026-06-30 | (branch `phase-01-foundation`) | Migration 0010 (`memory.facts/preferences/summaries/embeddings` +RLS); `MemoryPort`/`MemoryEngine` (embed via AI provider, retrieve ranked by similarity×recency×importance, expiry exclusion, purge); embeddings as jsonb + in-app cosine (pgvector deferred, KI-005); 3 tests |
+| 13 | Context Engine | 2026-06-30 | (branch `phase-01-foundation`) | `ContextEnginePort`/`ContextEngine` assembles Unified Context (capabilities + memory + user + conversation + settings), composes `ContextProvider`s by scope, short-TTL cached; `ContextProviderRegistry`; null conversation/settings readers (pluggable for phase-15); 2 tests |
 
 ## Pending phases
 
-Phases 13, 15–36 pending ([roadmap](05_IMPLEMENTATION_ROADMAP.md)). **M3 (AI brain): 14, 12 done; 13 (Context) next, then 15 (Conversation), 16 (Orchestrator), 17 (Planner), 18 (Workflow).**
+Phases 15–36 pending ([roadmap](05_IMPLEMENTATION_ROADMAP.md)). **M3 (AI brain): 14, 12, 13 done; 15 (Conversation) next, then 16 (Orchestrator), 17 (Planner), 18 (Workflow).**
 
 ## Frozen public contracts
 
@@ -117,6 +118,7 @@ All accepted ADRs apply ([08](08_ARCHITECTURE_DECISIONS.md)): ADR-0001 … ADR-0
 | 2026-06-30 | **Phase 08 implemented** (M1 complete): `SubscriptionModule` — migration 0007 (`billing.plans`, `plan_capabilities` data-driven map, `subscriptions`+RLS); `SubscriptionService.changePlan/startTrial` materializes `capability_grants` (source-tagged) and invalidates the permission cache; `BillingPort` + DB-backed stub. Subscriptions reference capabilities, never Skills. 3 tests (plan→grant→permission, trial expiry, idempotency). DB version `0007`. Full gate green (31 api tests). | CTO |
 | 2026-06-30 | **Phase 09 implemented** (M2 begins): `ToolRegistryModule` — `ToolRegistry` executes tools through the safety boundary (ajv input/output validation, capability gate via `PermissionPort`, HMAC `requiresConfirmation` tokens, audit). A malformed/unauthorized call never reaches a handler. Contracts `0.5.0` (`ToolRegistryPort`, `ToolExecutionResult`). ajv dep added. 7 unit tests. Full gate green (38 api tests). | CTO |
 | 2026-06-30 | **Phase 10 implemented**: `SkillRegistryModule` — `SkillRegistry` registers Skills from manifests (core imports none; ADR-0001), semver `contractVersion` compat, forwards tools to the Tool Registry, persists a summary (migration 0008 `catalog.skills`/`user_skills`), per-user enable/disable. New `@lifeos/skill-sdk` (`defineSkill`/`runSkillContractTests`) + `@lifeos/skill-sample` reference Skill. Contracts `0.6.0` (`SkillRegistryPort`). semver dep added. DB version `0008`. Full gate green (43 api+skill tests). **LifeOS is now a platform.** | CTO |
+| 2026-06-30 | **Phase 13 implemented**: `ContextModule` — `ContextEngine.assemble()` builds the permission-filtered Unified Context in parallel from `PermissionPort.capabilitiesFor` + `MemoryPort.retrieve` (intent-hinted) + user profile + conversation + settings, then composes registered `ContextProvider`s for the scope; short-TTL cached (per user+scope+intent — safe per-user). `ContextProviderRegistry`; pluggable `ConversationReaderPort`/`SettingsReaderPort` with null defaults (real conversation reader lands phase-15). 2 tests. Full gate green (57 tests). | CTO |
 | 2026-06-30 | **Phase 12 implemented**: `MemoryModule` — migration 0010 (`memory.facts/preferences/summaries/embeddings`, all RLS-scoped). `MemoryEngine` embeds statements via the AI provider, retrieves facts ranked by `similarity × recency × importance` (in-app cosine over jsonb embeddings; pgvector deferred, KI-005), excludes expired, returns preferences + recent summaries, and `purgeExpired()`. Reads/writes run in user-context so RLS enforces per-user isolation. 3 tests (semantic ranking, expiry+prefs, purge). DB version `0010`. Full gate green (55 tests). | CTO |
 | 2026-06-30 | **Phase 14 implemented** (M3 begins, built ahead of 12/13): `@lifeos/ai-core` — `AIProviderPort` (`complete`/`stream`/`embed`), deterministic `LocalAIProvider` (no external key; bag-of-words embeddings so similar text → similar vectors for testing), `createAIProvider` factory (OpenAI/Claude adapters deferred, need keys). `AiCoreModule` selects by `AI_PROVIDER` config. ADR-0004 now lint-enforced: added `SKILL_FORBIDDEN_IMPORTS` and applied it so Skills cannot import `@lifeos/ai-core`. Full gate green (52 tests). | CTO |
 | 2026-06-30 | **Phase 11 implemented** (M2 complete): `ConnectorRegistryModule` — `ConnectorRegistry` (register, `select(domain, {preferred})` with health-based failover + bulkhead for throwing providers, persist), migration 0009 (`catalog.connectors`). New `@lifeos/provider-sdk` (`defineConnector`/`runProviderContractTests`) + `@lifeos/connector-sample`. Contracts `0.7.0` (`ConnectorRegistryPort`). **Compat policy change:** Skill `contractVersion` compatibility is now **additive-within-major** (same major line + platform ≥ Skill floor via `semver.minVersion`), not strict caret — so additive minor bumps don't churn every Skill (consistent with the export-surface guard, docs/08). 6 registry + 1 sample tests. DB version `0009`. Full gate green (49 tests). | CTO |

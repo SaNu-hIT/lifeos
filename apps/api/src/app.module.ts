@@ -16,6 +16,7 @@ import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module
 import { SkillRegistryModule } from './modules/skill-registry/skill-registry.module.js';
 import { ConnectorRegistryModule } from './modules/connector-registry/connector-registry.module.js';
 import { MemoryModule } from './modules/memory/memory.module.js';
+import { ContextModule } from './modules/context/context.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MemoryModule } from './modules/memory/memory.module.js';
     SkillRegistryModule,
     ConnectorRegistryModule,
     MemoryModule,
+    ContextModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.
