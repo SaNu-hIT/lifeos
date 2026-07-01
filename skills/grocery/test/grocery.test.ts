@@ -31,6 +31,13 @@ class InMemoryRepo implements GroceryRepositoryPort {
   async getOrder(userId: string, orderId: string): Promise<Order | undefined> {
     return this.orders.find((o) => o.userId === userId && o.id === orderId);
   }
+  async recentOrders(userId: string, limit: number): Promise<Order[]> {
+    return this.orders
+      .filter((o) => o.userId === userId)
+      .slice()
+      .reverse()
+      .slice(0, limit);
+  }
 }
 
 const MILK: Product = { id: 'p1', name: 'Milk', priceMinor: 5000, unit: 'litre' };

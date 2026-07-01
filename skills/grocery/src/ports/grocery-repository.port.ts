@@ -10,4 +10,6 @@ export interface GroceryRepositoryPort {
   clearCart(userId: string): Promise<void>;
   saveOrder(order: Order): Promise<void>;
   getOrder(userId: string, orderId: string): Promise<Order | undefined>;
+  /** Most recent orders for a user, newest first (for personalization/context). */
+  recentOrders(userId: string, limit: number): Promise<Order[]>;
 }
