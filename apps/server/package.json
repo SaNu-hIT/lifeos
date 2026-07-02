@@ -1,0 +1,33 @@
+{
+  "name": "@lifeos/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "dev": "node --watch dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@lifeos/api": "workspace:*",
+    "@lifeos/contracts": "workspace:*",
+    "@lifeos/skill-grocery": "workspace:*",
+    "@lifeos/skill-calendar": "workspace:*",
+    "@lifeos/connector-blinkit": "workspace:*",
+    "@lifeos/connector-zepto": "workspace:*",
+    "@lifeos/connector-google-calendar": "workspace:*",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@lifeos/eslint-config": "workspace:*",
+    "@lifeos/tsconfig": "workspace:*",
+    "@types/node": "^20.16.5",
+    "eslint": "^9.11.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

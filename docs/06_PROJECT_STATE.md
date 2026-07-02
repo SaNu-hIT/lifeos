@@ -19,14 +19,15 @@ audience: AI agents (read FIRST) + reviewers
 
 | Field | Value |
 |-------|-------|
-| **Current Phase** | _Phase 36 complete — **ROADMAP COMPLETE (all 36 phases; Phase 32 Mobile deferred by decision)**._ |
-| **Next Phase** | — (roadmap done; next work is deployment enablement: real Supabase/OpenAI adapters, and the deferred Flutter Mobile app) |
-| **Last completed phase** | 36 — Production Readiness |
+| **Current Phase** | _Roadmap complete (01–36). **Post-roadmap: Skills wired live + orchestration verified end-to-end.**_ |
+| **Next Phase** | — Optional enhancements: real Postgres persistence for Grocery/Calendar, OpenAI provider, realtime SSE query-token, Supabase, Flutter mobile. |
+| **Last completed phase** | Post-36 — live skill composition (`apps/server`) + deterministic local planner |
 | **Contract version** (`@lifeos/contracts`) | `0.10.0` |
 | **Database version** (latest migration) | `0016_perf_indexes` |
 | **API version** | `v1` |
 | **Repo state** | **Production-ready.** Graceful shutdown wired: `bootstrap` calls `app.enableShutdownHooks()`, so `SIGTERM`/`SIGINT` runs every `onModuleDestroy` — the BullMQ worker/queue, Postgres pool, and Redis connection all drain and close. Deploy artifacts: [`apps/api/.env.example`](../apps/api/.env.example) (validated env template), [`apps/api/Dockerfile`](../apps/api/Dockerfile) (multi-stage build from repo root), and [`RUNBOOK.md`](../RUNBOOK.md) (migrations, liveness/readiness probes, scaling, incident quick-reference). 2 shutdown tests. Full gate green (119 api tests, 60 turbo tasks). Branch `phase-01-foundation`. **LifeOS is built: an AI-first Personal OS with two live Skills (Grocery, Calendar), two UIs (web, console), realtime, observability, and a hardened, documented production edge — Grocery was only ever Skill #1.** |
-| **Last Updated** | 2026-07-01 |
+| **Live composition** | New `apps/server` (`@lifeos/server`) composition root installs Grocery + Calendar into the running core via `SkillHost` (boundary-safe: apps/api stays skill-agnostic; server imports both). `LocalAIProvider` is now a **deterministic planner** (emits a real `{steps:[…]}` from the tool catalog offline). Seed migration `0017_seed_catalog` + dev-only `POST /v1/dev/subscribe` grant capabilities. **Verified live:** `"search for milk"` → planner → `grocery.search_products` executes → Blinkit returns *Amul Milk*; place-order confirmation handshake (awaiting_confirmation→token→execute); `calendar.list_events` runs; console lists both skills + 3 healthy connectors. Full gate green (117 api tests, 64 turbo tasks). |
+| **Last Updated** | 2026-07-02 |
 
 ## Completed phases
 

@@ -30,6 +30,7 @@ import { HomeModule } from './modules/home/home.module.js';
 import { SkillHostModule } from './modules/skill-host/skill-host.module.js';
 import { RealtimeModule } from './modules/realtime/realtime.module.js';
 import { ConsoleModule } from './modules/console/console.module.js';
+import { DevModule } from './modules/dev/dev.module.js';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ConsoleModule } from './modules/console/console.module.js';
     SkillHostModule,
     RealtimeModule,
     ConsoleModule,
+    DevModule,
   ],
   providers: [
     // Validated config, loaded (and validated) once at construction.

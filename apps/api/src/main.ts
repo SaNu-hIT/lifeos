@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { pathToFileURL } from 'node:url';
 import { VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
@@ -35,8 +36,12 @@ export async function bootstrap(): Promise<INestApplication> {
   return app;
 }
 
-// Auto-start only when executed directly (node dist/main.js), not when imported.
-if (process.argv[1]?.endsWith('main.js')) {
+// Auto-start ONLY when this file is the process entry point — not when it is imported
+// (e.g. by apps/server, whose own entry also ends with main.js). Compare the resolved
+// module URL to argv[1] so importing the barrel never boots a second server.
+const isEntry =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isEntry) {
   bootstrap().catch((error: unknown) => {
     console.error(error);
     process.exit(1);

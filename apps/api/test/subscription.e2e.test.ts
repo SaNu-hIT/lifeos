@@ -50,10 +50,10 @@ describe('Phase 08 — subscription engine (integration)', () => {
     await db.query(
       "insert into catalog.capabilities (key, domain, description) values ('grocery.order','grocery','x'),('ai.advanced_planning','ai','x') on conflict do nothing",
     );
-    // The 'pro' plan grants two capabilities — data, not code.
-    await db.query("insert into billing.plans (key, name) values ('pro','Pro') on conflict do nothing");
+    // The 'test_pro' plan grants two capabilities — data, not code.
+    await db.query("insert into billing.plans (key, name) values ('test_pro','Pro') on conflict do nothing");
     await db.query(
-      "insert into billing.plan_capabilities (plan_key, capability_key) values ('pro','grocery.order'),('pro','ai.advanced_planning') on conflict do nothing",
+      "insert into billing.plan_capabilities (plan_key, capability_key) values ('test_pro','grocery.order'),('test_pro','ai.advanced_planning') on conflict do nothing",
     );
   });
 
@@ -69,20 +69,20 @@ describe('Phase 08 — subscription engine (integration)', () => {
     // Before: no subscription → denied.
     expect((await engine.can(userId, 'grocery.order')).allow).toBe(false);
 
-    await subscriptions.changePlan(userId, 'pro');
+    await subscriptions.changePlan(userId, 'test_pro');
 
     // After: the plan's capabilities are granted and authorized.
     expect((await engine.can(userId, 'grocery.order')).allow).toBe(true);
     expect((await engine.can(userId, 'ai.advanced_planning')).allow).toBe(true);
 
     const status = await new SubscriptionRepository(db).statusFor(userId);
-    expect(status).toEqual({ active: true, planKey: 'pro' });
+    expect(status).toEqual({ active: true, planKey: 'test_pro' });
   });
 
   it('a trial grant authorizes immediately and expires', async () => {
     const past = new Date(Date.now() - 60_000).toISOString();
     await subscriptions.startTrial(userId, ['grocery.order'], past); // already expired
-    // Trial is expired, but the 'pro' subscription still grants grocery.order.
+    // Trial is expired, but the 'test_pro' subscription still grants grocery.order.
     expect((await engine.can(userId, 'grocery.order')).allow).toBe(true);
 
     const future = new Date(Date.now() + 3_600_000).toISOString();
@@ -101,8 +101,8 @@ describe('Phase 08 — subscription engine (integration)', () => {
   });
 
   it('changing plan is idempotent (re-applying yields the same grant set)', async () => {
-    await subscriptions.changePlan(userId, 'pro');
-    await subscriptions.changePlan(userId, 'pro');
+    await subscriptions.changePlan(userId, 'test_pro');
+    await subscriptions.changePlan(userId, 'test_pro');
     const grants = await db.query<{ capability_key: string }>(
       "select capability_key from billing.capability_grants where user_id = $1 and source = 'subscription' order by capability_key",
       [userId],
