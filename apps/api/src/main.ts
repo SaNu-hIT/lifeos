@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module.js';
 import { loadAppConfig } from './config/app-config.js';
 import { StructuredLogger } from './shared/logging/logger.js';
@@ -11,7 +12,12 @@ import { StructuredLogger } from './shared/logging/logger.js';
  * runtime bootstrap and the e2e tests so both exercise the same global pipeline.
  */
 export async function createApp(): Promise<INestApplication> {
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const config = loadAppConfig();
+  // Own the body parsers so we can bound payload size (docs/11 §4) — blunts a trivial
+  // memory-exhaustion DoS. Oversized bodies are rejected with 413.
+  const app = await NestFactory.create(AppModule, { logger: false, bodyParser: false });
+  app.use(json({ limit: config.MAX_BODY_SIZE }));
+  app.use(urlencoded({ extended: true, limit: config.MAX_BODY_SIZE }));
   // URI versioning → routes are served under /v1/... (docs/10_API_STANDARD.md §1).
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   return app;

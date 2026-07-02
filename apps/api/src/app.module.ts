@@ -69,7 +69,10 @@ import { ConsoleModule } from './modules/console/console.module.js';
     // Validate + transform all incoming DTOs; reject unknown properties.
     {
       provide: APP_PIPE,
-      useFactory: () => new ValidationPipe({ whitelist: true, transform: true }),
+      // whitelist strips unknown props; forbidNonWhitelisted rejects them outright so a
+      // client can't smuggle unexpected fields past a DTO (docs/11 §4).
+      useFactory: () =>
+        new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
     },
   ],
 })

@@ -24,6 +24,19 @@ function mapHttpStatusToCode(status: number): string {
   }
 }
 
+interface HttpErrorLike {
+  status?: number;
+  statusCode?: number;
+  message: string;
+}
+
+/** Detects http-errors-style objects (from Express middleware) with a numeric status. */
+function isHttpErrorLike(value: unknown): value is HttpErrorLike {
+  if (typeof value !== 'object' || value === null) return false;
+  const e = value as Record<string, unknown>;
+  return typeof e.status === 'number' || typeof e.statusCode === 'number';
+}
+
 /**
  * Renders every uncaught exception as the standard error envelope
  * (docs/10_API_STANDARD.md §2). Unknown errors are never leaked verbatim — the
@@ -51,6 +64,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       code = mapHttpStatusToCode(status);
       message = exception.message;
+      retryable = status >= 500;
+    } else if (isHttpErrorLike(exception)) {
+      // Errors from middleware (e.g. body-parser's 413 PayloadTooLarge) carry a numeric
+      // status but aren't Nest HttpExceptions — honor it instead of masking as 500.
+      status = exception.status ?? exception.statusCode ?? 500;
+      code = mapHttpStatusToCode(status);
+      message = status < 500 ? exception.message : 'Unexpected error';
       retryable = status >= 500;
     }
 
