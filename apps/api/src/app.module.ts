@@ -10,6 +10,7 @@ import { CacheModule } from './shared/cache/cache.module.js';
 import { AuditModule } from './shared/audit/audit.module.js';
 import { AiCoreModule } from './shared/ai/ai-core.module.js';
 import { EventsModule } from './shared/events/events.module.js';
+import { ObservabilityModule } from './shared/observability/observability.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { PermissionModule } from './modules/permission/permission.module.js';
@@ -37,6 +38,7 @@ import { ConsoleModule } from './modules/console/console.module.js';
     AuditModule,
     AiCoreModule,
     EventsModule,
+    ObservabilityModule,
     HealthModule,
     IdentityModule,
     PermissionModule,
