@@ -27,6 +27,9 @@ export async function bootstrap(): Promise<INestApplication> {
   const config = loadAppConfig(); // fails fast on invalid configuration
   const logger = new StructuredLogger(config.LOG_LEVEL);
   const app = await createApp();
+  // Graceful shutdown (docs/36): on SIGTERM/SIGINT Nest runs every onModuleDestroy —
+  // the DB pool, Redis, and the BullMQ worker/queue drain and close cleanly.
+  app.enableShutdownHooks();
   await app.listen(config.PORT);
   logger.info('LifeOS API started', { port: config.PORT, env: config.NODE_ENV });
   return app;
