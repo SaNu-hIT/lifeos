@@ -8,7 +8,14 @@ import { PgDatabaseAdapter } from './pg-database.adapter.js';
   providers: [
     {
       provide: DATABASE,
-      useFactory: () => new PgDatabaseAdapter(loadAppConfig().DATABASE_URL),
+      useFactory: () => {
+        const config = loadAppConfig();
+        return new PgDatabaseAdapter(config.DATABASE_URL, {
+          max: config.DB_POOL_MAX,
+          idleTimeoutMillis: config.DB_POOL_IDLE_MS,
+          connectionTimeoutMillis: config.DB_CONN_TIMEOUT_MS,
+        });
+      },
     },
   ],
   exports: [DATABASE],

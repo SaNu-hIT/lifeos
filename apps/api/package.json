@@ -9,6 +9,7 @@
     "start": "node dist/main.js",
     "dev": "node --watch dist/main.js",
     "migrate": "node dist/shared/database/migrate-cli.js",
+    "loadtest": "node dist/shared/perf/loadtest.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run"

@@ -20,6 +20,11 @@ export const AppConfigSchema = z.object({
   // Requests per minute per principal (userId or IP) at the API edge. 0 disables
   // limiting — the default for local/test; production overrides it (docs/10 §5).
   RATE_LIMIT_RPM: z.coerce.number().int().min(0).default(0),
+  // Postgres connection-pool tuning (docs/34 performance). Sized per instance;
+  // total connections = instances × DB_POOL_MAX must stay under the server limit.
+  DB_POOL_MAX: z.coerce.number().int().positive().default(10),
+  DB_POOL_IDLE_MS: z.coerce.number().int().min(0).default(30_000),
+  DB_CONN_TIMEOUT_MS: z.coerce.number().int().min(0).default(5_000),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

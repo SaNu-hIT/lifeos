@@ -4,11 +4,23 @@
 import { Pool, type PoolClient } from 'pg';
 import type { DatabasePort, DbContext, QueryResult, Tx } from './database.port.js';
 
+/** Pool-tuning knobs (docs/34). Optional so existing call sites (tests) are unaffected. */
+export interface PgPoolOptions {
+  max?: number;
+  idleTimeoutMillis?: number;
+  connectionTimeoutMillis?: number;
+}
+
 export class PgDatabaseAdapter implements DatabasePort {
   private readonly pool: Pool;
 
-  constructor(connectionString: string) {
-    this.pool = new Pool({ connectionString });
+  constructor(connectionString: string, options: PgPoolOptions = {}) {
+    this.pool = new Pool({
+      connectionString,
+      max: options.max,
+      idleTimeoutMillis: options.idleTimeoutMillis,
+      connectionTimeoutMillis: options.connectionTimeoutMillis,
+    });
   }
 
   async query<T = Record<string, unknown>>(
