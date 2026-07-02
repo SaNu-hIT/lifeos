@@ -121,6 +121,43 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.43)
 
+  apps/console:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.31
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.31)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.1
+        version: 4.7.0(vite@5.4.21(@types/node@20.19.43))
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.8
+        version: 5.4.21(@types/node@20.19.43)
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   apps/web:
     dependencies:
       '@lifeos/contracts':
