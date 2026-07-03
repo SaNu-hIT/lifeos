@@ -32,10 +32,13 @@ function ctx(): UnifiedContext {
 }
 
 /** A fake AI provider that returns a fixed completion (to drive the planner). */
-function fakeAI(text: string): AIProviderPort {
+function fakeAI(text: string, onComplete?: (messages: unknown) => void): AIProviderPort {
   return {
     name: 'fake',
-    complete: async (): Promise<Completion> => ({ text, model: 'fake' }),
+    complete: async (req): Promise<Completion> => {
+      onComplete?.(req.messages);
+      return { text, model: 'fake' };
+    },
     async *stream() {
       yield { text };
     },
@@ -97,5 +100,24 @@ describe('AIPlanner', () => {
     const planner = new AIPlanner(fakeAI('{"steps":[{"tool":"x","args":{}}]}'));
     const plan = await planner.plan({ intent: 'x', context: ctx(), tools: [] });
     expect(plan.steps).toEqual([]);
+  });
+
+  it('includes recent conversation turns in the prompt sent to the model', async () => {
+    let sentMessages: unknown;
+    const planner = new AIPlanner(fakeAI('{"steps":[]}', (m) => (sentMessages = m)));
+    const withHistory: UnifiedContext = {
+      ...ctx(),
+      conversation: {
+        id: 'c1',
+        recentTurns: [
+          { id: 't2', role: 'assistant', content: 'Found Amul Milk.', createdAt: '2026-06-30T00:01:00Z' },
+          { id: 't1', role: 'user', content: 'milk,cheese,pazham', createdAt: '2026-06-30T00:00:00Z' },
+        ],
+      },
+    };
+    await planner.plan({ intent: 'analyze my shopping list', context: withHistory, tools });
+    const rendered = JSON.stringify(sentMessages);
+    expect(rendered).toContain('milk,cheese,pazham');
+    expect(rendered).toContain('Found Amul Milk.');
   });
 });

@@ -3,7 +3,7 @@
 // capability + confirmation, then executes.
 
 import type { UnifiedContext } from '../context/context.js';
-import type { Tool } from './tool.js';
+import type { FollowUpSuggestion, Tool } from './tool.js';
 
 /** DI token for the ToolRegistryPort. */
 export const TOOL_REGISTRY = Symbol('TOOL_REGISTRY');
@@ -11,6 +11,9 @@ export const TOOL_REGISTRY = Symbol('TOOL_REGISTRY');
 export interface ToolExecutionOk<O = unknown> {
   status: 'ok';
   output: O;
+  /** The tool's declared next-step suggestions (if any), relayed to the caller so the
+   *  surface can offer them as one-tap follow-ups. */
+  followUps?: FollowUpSuggestion[];
 }
 
 export interface ToolExecutionNeedsConfirmation {
@@ -19,14 +22,22 @@ export interface ToolExecutionNeedsConfirmation {
   confirmationToken: string;
 }
 
+export interface ToolExecutionNeedsClarification<C = unknown> {
+  status: 'needs_clarification';
+  /** Opaque, tool-defined payload describing what's ambiguous and the options — the
+   *  registry/orchestrator relay it verbatim without interpreting it. */
+  choices: C;
+}
+
 export interface ToolExecutionError {
   status: 'error';
   error: { code: string; message: string };
 }
 
-export type ToolExecutionResult<O = unknown> =
+export type ToolExecutionResult<O = unknown, C = unknown> =
   | ToolExecutionOk<O>
   | ToolExecutionNeedsConfirmation
+  | ToolExecutionNeedsClarification<C>
   | ToolExecutionError;
 
 export interface ExecuteToolOptions {

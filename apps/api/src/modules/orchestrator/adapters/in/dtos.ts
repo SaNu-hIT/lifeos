@@ -1,4 +1,4 @@
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class StartConversationDto {
@@ -15,6 +15,15 @@ export class ConfirmationDto {
   token!: string;
 }
 
+export class ClarificationDto {
+  @IsString()
+  toolName!: string;
+
+  /** productName -> { brand, unit? } — one answer per batched question. */
+  @IsObject()
+  selections!: Record<string, { brand: string; unit?: string }>;
+}
+
 export class SendMessageDto {
   @IsString()
   content!: string;
@@ -23,4 +32,9 @@ export class SendMessageDto {
   @ValidateNested()
   @Type(() => ConfirmationDto)
   confirmation?: ConfirmationDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ClarificationDto)
+  clarification?: ClarificationDto;
 }

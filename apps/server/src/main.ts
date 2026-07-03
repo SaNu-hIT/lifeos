@@ -11,13 +11,14 @@ import {
 } from '@lifeos/contracts';
 import {
   createApp,
+  DATABASE,
   IdempotentDispatcher,
   loadAppConfig,
   SKILL_HOST,
+  type DatabasePort,
   type SkillHost,
 } from '@lifeos/api';
-import { blinkitConnector } from '@lifeos/connector-blinkit';
-import { zeptoConnector } from '@lifeos/connector-zepto';
+import { createAllQuickCommerceConnectors } from '@lifeos/connector-quick-commerce';
 import { googleCalendarConnector } from '@lifeos/connector-google-calendar';
 import { buildManifests } from './skills.js';
 
@@ -31,19 +32,25 @@ export async function bootstrap(): Promise<void> {
   const dispatcher = app.get(IdempotentDispatcher);
   const publish = (event: DomainEvent): Promise<void> => dispatcher.dispatch(event);
 
-  // Install the Skills through the single SkillHost seam.
-  const host = app.get<SkillHost>(SKILL_HOST);
-  await host.installAll(buildManifests(publish));
-
   // Register connectors so the registry can select/fail over and the console shows them.
+  // The six quick-commerce connectors (Blinkit, Zepto, Instamart, BigBasket, JioMart,
+  // Flipkart Minutes) are real reverse-engineered JSON-API price scrapers; compare_prices/
+  // check_price (skills/grocery/src/tools.ts) fan out over every registered grocery
+  // connector, so each shows up as its own column. A connector without credentials reports
+  // unhealthy and the comparison falls back to cache rather than failing.
   const connectors = app.get<ConnectorRegistryPort>(CONNECTOR_REGISTRY);
-  for (const connector of [blinkitConnector, zeptoConnector, googleCalendarConnector]) {
+  for (const connector of [...createAllQuickCommerceConnectors(), googleCalendarConnector]) {
     try {
       connectors.register(connector);
     } catch {
       // already registered (idempotent boot) — ignore
     }
   }
+
+  // Install the Skills through the single SkillHost seam.
+  const db = app.get<DatabasePort>(DATABASE);
+  const host = app.get<SkillHost>(SKILL_HOST);
+  await host.installAll(buildManifests(publish, { db, connectors }));
 
   app.enableShutdownHooks();
   await app.listen(config.PORT);

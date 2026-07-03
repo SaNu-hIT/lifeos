@@ -34,3 +34,33 @@ export async function runGroceryProviderContractTests(provider: GroceryProviderP
     throw new Error(`Grocery provider contract failed for "${provider.key}":\n- ${errors.join('\n- ')}`);
   }
 }
+
+/**
+ * Contract kit for READ-ONLY connectors (live price scrapers that don't place orders and
+ * need credentials/network to search). Verifies the grocery shape without calling
+ * searchProducts (that's covered by each connector's parser fixture tests) and requires
+ * submitOrder to be refused — so a scraper can never accidentally place a real order.
+ */
+export async function runReadOnlyGroceryProviderContractTests(provider: GroceryProviderPort): Promise<void> {
+  const errors: string[] = [];
+
+  if (provider.domain !== 'grocery') errors.push(`domain must be 'grocery', got '${provider.domain}'`);
+  const health = await provider.health();
+  if (typeof health.healthy !== 'boolean') errors.push('health() must return { healthy: boolean }');
+
+  const line: CartLine = {
+    product: { id: 'contract_probe', name: 'Probe', priceMinor: 100, unit: 'unit' },
+    quantity: 1,
+  };
+  let refused = false;
+  try {
+    await provider.submitOrder('contract-user', [line]);
+  } catch {
+    refused = true;
+  }
+  if (!refused) errors.push('read-only connector must reject submitOrder()');
+
+  if (errors.length > 0) {
+    throw new Error(`Read-only grocery provider contract failed for "${provider.key}":\n- ${errors.join('\n- ')}`);
+  }
+}

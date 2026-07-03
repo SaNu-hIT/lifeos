@@ -21,6 +21,8 @@ export function createCalendarSkill(deps: CalendarSkillDeps): SkillManifest {
   return defineSkill({
     key: 'calendar',
     version: '1.0.0',
+    title: 'Calendar',
+    description: 'View your schedule, find free time slots, and create calendar events.',
     contractVersion: '^0.9.0',
     capabilities: [
       { key: 'calendar.read', description: 'View events and find free slots' },

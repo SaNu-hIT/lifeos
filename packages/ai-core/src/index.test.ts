@@ -80,8 +80,10 @@ describe('createAIProvider', () => {
   it('returns the local provider by default', () => {
     expect(createAIProvider().name).toBe('local');
   });
-  it('throws for a deferred/unknown provider', () => {
-    expect(() => createAIProvider({ provider: 'openai' })).toThrow(/not configured/);
+  it('returns the openai provider when configured with a key', () => {
+    expect(createAIProvider({ provider: 'openai', apiKey: 'sk-test' }).name).toBe('openai');
+  });
+  it('throws for an unregistered provider', () => {
     expect(() => createAIProvider({ provider: 'nope' })).toThrow(/unknown AI provider/);
   });
 });

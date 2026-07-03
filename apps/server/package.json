@@ -6,8 +6,8 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
-    "dev": "node --watch dist/main.js",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "dev": "node --env-file-if-exists=.env --watch dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run"
@@ -18,7 +18,10 @@
     "@lifeos/skill-grocery": "workspace:*",
     "@lifeos/skill-calendar": "workspace:*",
     "@lifeos/connector-blinkit": "workspace:*",
+    "@lifeos/connector-blinkit-live": "workspace:*",
     "@lifeos/connector-zepto": "workspace:*",
+    "@lifeos/connector-zepto-live": "workspace:*",
+    "@lifeos/connector-quick-commerce": "workspace:*",
     "@lifeos/connector-google-calendar": "workspace:*",
     "reflect-metadata": "^0.2.2"
   },

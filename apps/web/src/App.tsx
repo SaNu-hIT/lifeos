@@ -5,13 +5,15 @@ import { subscribeRealtime } from './lib/realtime';
 import type { Me } from './types';
 import { Home } from './components/Home';
 import { Chat } from './components/Chat';
+import { Skills } from './components/Skills';
+import { Users } from './components/Users';
 
 const TOKEN_KEY = 'lifeos_token';
 
 export function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [me, setMe] = useState<Me | null>(null);
-  const [tab, setTab] = useState<'home' | 'chat'>('home');
+  const [tab, setTab] = useState<'home' | 'chat' | 'skills' | 'users'>('home');
   const [error, setError] = useState<string | null>(null);
   const [pulse, setPulse] = useState(0); // bumped on any realtime event → children refetch
 
@@ -26,6 +28,12 @@ export function App() {
       );
       localStorage.setItem(TOKEN_KEY, res.token);
       setToken(res.token);
+      // Dev convenience: grant the demo user the Pro plan so Skill tools are permitted
+      // (grocery.*/calendar.*). Without this a fresh user has no capabilities and the
+      // planner sees no tools. Best-effort — ignore if the endpoint is disabled.
+      await createApiClient('', () => res.token)
+        .post('/v1/dev/subscribe', { planKey: 'pro' })
+        .catch(() => undefined);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'sign-in failed');
     }
@@ -40,6 +48,9 @@ export function App() {
   useEffect(() => {
     if (!token) return;
     api.get<Me>('/v1/me').then(setMe).catch((e: Error) => setError(e.message));
+    // Ensure capabilities for any session (incl. ones from before auto-subscribe existed),
+    // so Skill tools are permitted. Idempotent, best-effort.
+    api.post('/v1/dev/subscribe', { planKey: 'pro' }).catch(() => undefined);
   }, [api, token]);
 
   // Live updates: any event bumps a pulse counter the panels watch.
@@ -57,6 +68,8 @@ export function App() {
         <nav style={styles.nav}>
           <button style={tabStyle(tab === 'home')} onClick={() => setTab('home')}>Home</button>
           <button style={tabStyle(tab === 'chat')} onClick={() => setTab('chat')}>Chat</button>
+          <button style={tabStyle(tab === 'skills')} onClick={() => setTab('skills')}>Skills</button>
+          <button style={tabStyle(tab === 'users')} onClick={() => setTab('users')}>Users</button>
         </nav>
         <div style={styles.session}>
           {me ? (
@@ -82,8 +95,12 @@ export function App() {
           </div>
         ) : tab === 'home' ? (
           <Home api={api} pulse={pulse} />
-        ) : (
+        ) : tab === 'chat' ? (
           <Chat api={api} />
+        ) : tab === 'skills' ? (
+          <Skills api={api} />
+        ) : (
+          <Users api={api} />
         )}
       </main>
     </div>

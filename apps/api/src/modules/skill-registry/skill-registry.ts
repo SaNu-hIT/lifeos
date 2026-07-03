@@ -47,6 +47,8 @@ export class SkillRegistry implements SkillRegistryPort {
     const descriptor: SkillDescriptor = {
       key: manifest.key,
       version: manifest.version,
+      title: manifest.title,
+      description: manifest.description,
       contractVersion: manifest.contractVersion,
       status: 'registered',
       toolNames: manifest.tools.map((t) => t.name),

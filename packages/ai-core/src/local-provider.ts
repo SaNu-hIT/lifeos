@@ -130,6 +130,67 @@ function planFor(intent: string, tools: CatalogTool[]): { tool: string; args: un
   return { tool: best.tool.name, args };
 }
 
+interface StepResult {
+  tool: string;
+  output?: unknown;
+  error?: { code: string; message: string };
+}
+
+/** Pretty a namespaced tool name: `grocery.search_products` → `search products`. */
+function toolLabel(tool: string): string {
+  const last = tool.split('.').pop() ?? tool;
+  return last.replace(/_/g, ' ');
+}
+
+/** Describe a tool's output in one human phrase, generically (no skill knowledge). */
+function describeOutput(output: unknown): string {
+  if (output === null || output === undefined) return 'done';
+  if (typeof output !== 'object') return String(output);
+  const entries = Object.entries(output as Record<string, unknown>);
+  for (const [key, value] of entries) {
+    if (Array.isArray(value)) {
+      if (value.length === 0) return `no ${key}`;
+      const names = value
+        .map((it) =>
+          it && typeof it === 'object'
+            ? ((it as Record<string, unknown>).name ?? (it as Record<string, unknown>).title)
+            : it,
+        )
+        .filter((n): n is string => typeof n === 'string');
+      return names.length ? `${value.length} ${key} — ${names.join(', ')}` : `${value.length} ${key}`;
+    }
+  }
+  return entries.map(([k, v]) => `${k}: ${String(v)}`).join(', ');
+}
+
+/** Turn the orchestrator's summary input into a readable reply — the offline stand-in
+ *  for an LLM summary. Input is either the bare intent, or `<intent> :: <results-json>`. */
+function summarize(userContent: string): string {
+  const sep = userContent.indexOf(' :: ');
+  if (sep < 0) return `I couldn't find an action to take for “${userContent.trim()}”.`;
+
+  const intent = userContent.slice(0, sep).trim();
+  let results: StepResult[] = [];
+  try {
+    results = JSON.parse(userContent.slice(sep + 4)) as StepResult[];
+  } catch {
+    return intent;
+  }
+  if (results.length === 0) return `I couldn't find an action to take for “${intent}”.`;
+
+  return results
+    .map((r) =>
+      r.error
+        ? `⚠️ Couldn't ${toolLabel(r.tool)}: ${r.error.message}`
+        : `✓ ${toolLabel(r.tool)}: ${describeOutput(r.output)}`,
+    )
+    .join('\n');
+}
+
+function isSummaryRequest(messages: ChatMessage[]): boolean {
+  return messages.some((m) => m.role === 'system' && m.content.includes('Summarize the outcome'));
+}
+
 export class LocalAIProvider implements AIProviderPort {
   readonly name = 'local';
 
@@ -139,6 +200,9 @@ export class LocalAIProvider implements AIProviderPort {
       const step = planFor(planReq.intent, planReq.tools);
       const steps = step ? [step] : [];
       return { text: JSON.stringify({ steps }), model: 'local' };
+    }
+    if (isSummaryRequest(request.messages)) {
+      return { text: summarize(lastUser(request.messages)), model: 'local' };
     }
     return { text: `[local] ${lastUser(request.messages)}`.trim(), model: 'local' };
   }

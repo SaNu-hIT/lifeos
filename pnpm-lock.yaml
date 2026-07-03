@@ -169,12 +169,21 @@ importers:
       '@lifeos/connector-blinkit':
         specifier: workspace:*
         version: link:../../connectors/blinkit
+      '@lifeos/connector-blinkit-live':
+        specifier: workspace:*
+        version: link:../../connectors/blinkit-live
       '@lifeos/connector-google-calendar':
         specifier: workspace:*
         version: link:../../connectors/google-calendar
+      '@lifeos/connector-quick-commerce':
+        specifier: workspace:*
+        version: link:../../connectors/quick-commerce
       '@lifeos/connector-zepto':
         specifier: workspace:*
         version: link:../../connectors/zepto
+      '@lifeos/connector-zepto-live':
+        specifier: workspace:*
+        version: link:../../connectors/zepto-live
       '@lifeos/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -272,6 +281,40 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.43)
 
+  connectors/blinkit-live:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/provider-sdk':
+        specifier: workspace:*
+        version: link:../../packages/provider-sdk
+      '@lifeos/skill-grocery':
+        specifier: workspace:*
+        version: link:../../skills/grocery
+      playwright:
+        specifier: ^1.47.0
+        version: 1.61.1
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   connectors/google-calendar:
     dependencies:
       '@lifeos/contracts':
@@ -290,6 +333,40 @@ importers:
       '@lifeos/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  connectors/quick-commerce:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/provider-sdk':
+        specifier: workspace:*
+        version: link:../../packages/provider-sdk
+      '@lifeos/skill-grocery':
+        specifier: workspace:*
+        version: link:../../skills/grocery
+      playwright:
+        specifier: ^1.47.0
+        version: 1.61.1
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)
@@ -353,6 +430,40 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.43)
 
+  connectors/zepto-live:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/provider-sdk':
+        specifier: workspace:*
+        version: link:../../packages/provider-sdk
+      '@lifeos/skill-grocery':
+        specifier: workspace:*
+        version: link:../../skills/grocery
+      playwright:
+        specifier: ^1.47.0
+        version: 1.61.1
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   packages/ai-core:
     devDependencies:
       '@lifeos/eslint-config':
@@ -361,6 +472,9 @@ importers:
       '@lifeos/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)
@@ -515,6 +629,9 @@ importers:
       '@lifeos/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)
@@ -1982,6 +2099,11 @@ packages:
     resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -2478,6 +2600,16 @@ packages:
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
+
+  playwright-core@1.61.1:
+    resolution: {integrity: sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.61.1:
+    resolution: {integrity: sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss@8.5.16:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
@@ -4410,6 +4542,9 @@ snapshots:
 
   fresh@0.5.2: {}
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -4852,6 +4987,14 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.4: {}
+
+  playwright-core@1.61.1: {}
+
+  playwright@1.61.1:
+    dependencies:
+      playwright-core: 1.61.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   postcss@8.5.16:
     dependencies:

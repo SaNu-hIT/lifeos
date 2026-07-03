@@ -36,6 +36,7 @@ export class ConversationsController {
         conversationId,
         content: dto.content,
         confirmation: dto.confirmation,
+        clarification: dto.clarification,
       }),
     );
   }

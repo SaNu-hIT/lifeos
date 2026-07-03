@@ -14,9 +14,10 @@ import type {
 
 // Blinkit's (simulated) catalogue and price list, in paise.
 const CATALOG: Product[] = [
-  { id: 'blk-milk', name: 'Amul Milk', priceMinor: 5400, unit: 'litre' },
-  { id: 'blk-bread', name: 'Brown Bread', priceMinor: 3500, unit: 'pack' },
-  { id: 'blk-eggs', name: 'Farm Eggs', priceMinor: 8200, unit: 'dozen' },
+  { id: 'blk-milk', name: 'Amul Milk', priceMinor: 5400, unit: 'litre', rating: 4.5, ratingCount: 1280, available: true },
+  { id: 'blk-bread', name: 'Brown Bread', priceMinor: 3500, unit: 'pack', rating: 4.2, ratingCount: 640, available: true },
+  // Cheapest-looking eggs but out of stock — exercises availability-aware comparison.
+  { id: 'blk-eggs', name: 'Farm Eggs', priceMinor: 8200, unit: 'dozen', rating: 4.6, ratingCount: 910, available: false },
 ];
 
 const ETA_MINUTES = 12; // Blinkit's promise

@@ -12,6 +12,10 @@ export type SkillStatus = 'registered' | 'enabled' | 'disabled';
 export interface SkillDescriptor {
   key: string;
   version: string;
+  /** Human-readable name (falls back to `key` when the manifest omits it). */
+  title?: string;
+  /** One-line description of the Skill, for surfaces that list it. */
+  description?: string;
   contractVersion: string;
   status: SkillStatus;
   toolNames: string[];

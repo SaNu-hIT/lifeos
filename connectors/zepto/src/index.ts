@@ -14,9 +14,9 @@ import type {
 
 // Zepto's (simulated) catalogue — different SKUs and prices from Blinkit.
 const CATALOG: Product[] = [
-  { id: 'zep-milk', name: 'Country Delight Milk', priceMinor: 5600, unit: 'litre' },
-  { id: 'zep-bread', name: 'Multigrain Bread', priceMinor: 4000, unit: 'pack' },
-  { id: 'zep-butter', name: 'Amul Butter', priceMinor: 6000, unit: 'pack' },
+  { id: 'zep-milk', name: 'Country Delight Milk', priceMinor: 5600, unit: 'litre', rating: 4.3, ratingCount: 2100, available: true },
+  { id: 'zep-bread', name: 'Multigrain Bread', priceMinor: 4000, unit: 'pack', rating: 4.0, ratingCount: 350, available: true },
+  { id: 'zep-butter', name: 'Amul Butter', priceMinor: 6000, unit: 'pack', rating: 4.7, ratingCount: 1500, available: true },
 ];
 
 const ETA_MINUTES = 9; // Zepto's promise (faster than Blinkit)

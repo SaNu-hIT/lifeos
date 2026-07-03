@@ -25,6 +25,11 @@ export interface EventHandlerRegistration {
 export interface SkillManifest {
   key: string;
   version: string;
+  /** Human-readable name for surfaces (console, skills list), e.g. "Grocery". Falls
+   *  back to `key` when absent. */
+  title?: string;
+  /** One-line description of what the Skill does, shown alongside the title. */
+  description?: string;
   /** The platform contract version this Skill targets (semver range). */
   contractVersion: string;
   capabilities: CapabilityDeclaration[];

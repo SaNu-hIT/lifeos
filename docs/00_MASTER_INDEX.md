@@ -35,6 +35,7 @@ docs/                      ← WHAT we are building and WHY (source of truth)
   12_TESTING_GUIDE.md
   13_DEPLOYMENT_GUIDE.md
   14_GLOSSARY.md
+  15_LOCAL_DEV_RUNBOOK.md  ← how to run the full stack locally (server + web)
   adr/                     ← Architecture Decision Records (adr-0001 … )
 
 implementation/            ← HOW we build it, phase by phase (≈36 phases)

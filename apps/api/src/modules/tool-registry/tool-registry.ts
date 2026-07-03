@@ -1,4 +1,5 @@
 import {
+  ClarificationRequiredError,
   type ExecuteToolOptions,
   type PermissionPort,
   type Tool,
@@ -81,7 +82,10 @@ export class ToolRegistry implements ToolRegistryPort {
     let output: unknown;
     try {
       output = await tool.handler(ctx, args);
-    } catch {
+    } catch (err) {
+      if (err instanceof ClarificationRequiredError) {
+        return { status: 'needs_clarification', choices: err.choices };
+      }
       await this.audit.record({
         userId: ctx.user.id,
         actor: 'system',
@@ -103,6 +107,8 @@ export class ToolRegistry implements ToolRegistryPort {
       resource: name,
       decision: 'ok',
     });
-    return { status: 'ok', output };
+    // Prefer result-aware follow-ups (self-aware buttons) over the static list.
+    const followUps = tool.followUpsFor ? tool.followUpsFor(output, ctx) : tool.followUps;
+    return { status: 'ok', output, followUps };
   }
 }

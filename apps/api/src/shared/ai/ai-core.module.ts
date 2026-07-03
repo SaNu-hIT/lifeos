@@ -13,7 +13,13 @@ export const AI_PROVIDER = Symbol('AI_PROVIDER');
       provide: AI_PROVIDER,
       useFactory: (): AIProviderPort => {
         const config = loadAppConfig();
-        return createAIProvider({ provider: config.AI_PROVIDER, apiKey: config.OPENAI_API_KEY });
+        return createAIProvider({
+          provider: config.AI_PROVIDER,
+          apiKey: config.OPENAI_API_KEY,
+          model: config.OPENAI_MODEL,
+          embedModel: config.OPENAI_EMBED_MODEL,
+          timeoutMs: config.AI_REQUEST_TIMEOUT_MS,
+        });
       },
     },
   ],

@@ -30,4 +30,14 @@ describe('Phase 35 — config security guards', () => {
   it('defaults the body-size limit', () => {
     expect(loadAppConfig({ ...base }).MAX_BODY_SIZE).toBe('1mb');
   });
+
+  it('rejects AI_PROVIDER=openai without an API key', () => {
+    expect(() => loadAppConfig({ ...base, AI_PROVIDER: 'openai' })).toThrow(/OPENAI_API_KEY/);
+  });
+
+  it('accepts AI_PROVIDER=openai with an API key and defaults the model', () => {
+    const cfg = loadAppConfig({ ...base, AI_PROVIDER: 'openai', OPENAI_API_KEY: 'sk-test' });
+    expect(cfg.OPENAI_MODEL).toBe('gpt-4o-mini');
+    expect(cfg.OPENAI_EMBED_MODEL).toBe('text-embedding-3-small');
+  });
 });

@@ -19,10 +19,14 @@ import {
 export function createGrocerySkill(deps: GroceryToolDeps): SkillManifest {
   return defineSkill({
     key: 'grocery',
-    version: '1.2.0',
+    version: '1.3.0',
+    title: 'Grocery',
+    description:
+      'Manage a shopping list, search products, and compare prices across stores like ' +
+      'Blinkit and Zepto to find the cheapest option.',
     contractVersion: '^0.9.0',
     capabilities: [
-      { key: 'grocery.read', description: 'Search products and build a cart' },
+      { key: 'grocery.read', description: 'Search products, manage the shopping list, build a cart' },
       { key: 'grocery.order', description: 'Place grocery orders' },
     ],
     tools: createGroceryTools(deps),
@@ -41,9 +45,22 @@ export * from './domain/cart.js';
 export * from './personalization.js';
 export type { GroceryProviderPort, SubmittedOrder } from './ports/grocery-provider.port.js';
 export type { GroceryRepositoryPort } from './ports/grocery-repository.port.js';
-export { createGroceryTools, type GroceryToolDeps } from './tools.js';
+export type { GroceryListRepositoryPort, ListItem } from './ports/grocery-list.port.js';
+export type { GroceryPriceCachePort, CachedPrice } from './ports/grocery-price-cache.port.js';
+export type { GroceryPreferencePort, GroceryPreference } from './ports/grocery-preference.port.js';
+export {
+  createGroceryTools,
+  type GroceryToolDeps,
+  type StorePrice,
+  type CompareItemResult,
+  type StoreTotal,
+  type ClarificationChoice,
+  type ClarificationOption,
+  type PriceMatrix,
+  type PriceCell,
+} from './tools.js';
 export { createGroceryContextProvider, type GroceryContextDeps } from './context.js';
-export { runGroceryProviderContractTests } from './provider-contract.js';
+export { runGroceryProviderContractTests, runReadOnlyGroceryProviderContractTests } from './provider-contract.js';
 export {
   GROCERY_ORDER_PLACED,
   createGroceryActivityProjection,

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import {
   ErrorCodes,
   type ExecutionPlan,
+  type FollowUpSuggestion,
   LifeOSError,
   type PlanStep,
   type Tool,
@@ -12,8 +13,13 @@ export interface RawPlanStep {
   tool: string;
   args: unknown;
 }
+export interface RawPlanSuggestion {
+  label?: unknown;
+  prompt?: unknown;
+}
 export interface RawPlan {
   steps: RawPlanStep[];
+  suggestions?: RawPlanSuggestion[];
 }
 
 /**
@@ -50,6 +56,44 @@ export class PlanValidator {
       steps.push({ tool: step.tool, args: step.args });
     }
 
-    return { planId: `pl_${randomUUID()}`, intent, steps, requiresUserConfirmation };
+    const suggestions = this.validateSuggestions(raw.suggestions, tools);
+
+    return {
+      planId: `pl_${randomUUID()}`,
+      intent,
+      steps,
+      requiresUserConfirmation,
+      ...(suggestions.length > 0 ? { suggestions } : {}),
+    };
+  }
+
+  /**
+   * Keeps only suggestions that exactly match a followUp DECLARED by one of the
+   * available tools — the same safety principle as tool-name validation: the LLM
+   * can pick from the skills' offered actions but cannot invent a button (which
+   * could send an arbitrary prompt). Deduped by label.
+   */
+  private validateSuggestions(
+    raw: RawPlanSuggestion[] | undefined,
+    tools: Tool[],
+  ): FollowUpSuggestion[] {
+    if (!raw?.length) return [];
+    const declared = new Map<string, FollowUpSuggestion>();
+    for (const tool of tools) {
+      for (const followUp of tool.followUps ?? []) {
+        declared.set(followUp.label, followUp);
+      }
+    }
+    const out: FollowUpSuggestion[] = [];
+    const seen = new Set<string>();
+    for (const s of raw) {
+      if (typeof s?.label !== 'string') continue;
+      const match = declared.get(s.label);
+      if (match && !seen.has(match.label)) {
+        seen.add(match.label);
+        out.push(match); // use the declared copy, not the model's echo
+      }
+    }
+    return out;
   }
 }

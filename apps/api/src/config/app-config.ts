@@ -18,9 +18,13 @@ export const AppConfigSchema = z
     // Redis connection for BullMQ (queues) and short-term state.
     REDIS_URL: z.string().url().default('redis://localhost:6379'),
     // AI provider selection (docs/adr/adr-0004). 'local' is the deterministic dev
-    // provider; 'openai' etc. are added later and require credentials.
+    // provider; any name registered via `registerAIProvider` (@lifeos/ai-core) works —
+    // 'openai' ships built in and requires OPENAI_API_KEY.
     AI_PROVIDER: z.string().default('local'),
     OPENAI_API_KEY: z.string().optional(),
+    OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+    OPENAI_EMBED_MODEL: z.string().default('text-embedding-3-small'),
+    AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
     // Requests per minute per principal (userId or IP) at the API edge. 0 disables
     // limiting — the default for local/test; production overrides it (docs/10 §5).
     RATE_LIMIT_RPM: z.coerce.number().int().min(0).default(0),
@@ -39,6 +43,15 @@ export const AppConfigSchema = z
         code: z.ZodIssueCode.custom,
         path: ['AUTH_JWT_SECRET'],
         message: 'AUTH_JWT_SECRET must be overridden in production (the dev default is forbidden)',
+      });
+    }
+    // A provider that clearly needs an API key must have one — fail fast rather than
+    // booting into an AIProviderError on the first request.
+    if (cfg.AI_PROVIDER === 'openai' && !cfg.OPENAI_API_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['OPENAI_API_KEY'],
+        message: 'OPENAI_API_KEY is required when AI_PROVIDER=openai',
       });
     }
   });

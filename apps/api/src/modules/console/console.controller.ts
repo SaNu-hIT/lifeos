@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { IsBoolean } from 'class-validator';
 import {
   CONNECTOR_REGISTRY,
+  ErrorCodes,
+  LifeOSError,
   PERMISSION_PORT,
   SKILL_REGISTRY,
   type ApiResponse,
@@ -14,6 +17,7 @@ import {
   type UnifiedContext,
 } from '@lifeos/contracts';
 import { ok } from '../../shared/http/envelope.js';
+import { DATABASE, type DatabasePort } from '../../shared/database/database.port.js';
 import {
   CONTEXT_ENGINE,
   type ContextEnginePort,
@@ -26,6 +30,14 @@ interface ConnectorHealthView {
   domain: string;
   healthy: boolean;
   details?: string;
+}
+
+/** A registered Skill plus the caller's per-user on/off state. */
+type SkillView = SkillDescriptor & { enabled: boolean };
+
+class SkillEnabledDto {
+  @IsBoolean()
+  enabled!: boolean;
 }
 
 /**
@@ -42,11 +54,31 @@ export class ConsoleController {
     @Inject(CONNECTOR_REGISTRY) private readonly connectors: ConnectorRegistryPort,
     @Inject(PERMISSION_PORT) private readonly permissions: PermissionPort,
     @Inject(CONTEXT_ENGINE) private readonly context: ContextEnginePort,
+    @Inject(DATABASE) private readonly db: DatabasePort,
   ) {}
 
   @Get('skills')
-  skillList(): ApiResponse<SkillDescriptor[]> {
-    return ok(this.skills.list());
+  async skillList(@CurrentUser() user: AuthUser): Promise<ApiResponse<SkillView[]>> {
+    // Per-user overrides live in catalog.user_skills; absence means enabled (default true).
+    const rows = await this.db.query<{ skill_key: string; enabled: boolean }>(
+      'select skill_key, enabled from catalog.user_skills where user_id = $1',
+      [user.id],
+    );
+    const overrides = new Map(rows.rows.map((r) => [r.skill_key, r.enabled]));
+    return ok(this.skills.list().map((s) => ({ ...s, enabled: overrides.get(s.key) ?? true })));
+  }
+
+  @Post('skills/:key/enabled')
+  async setSkillEnabled(
+    @CurrentUser() user: AuthUser,
+    @Param('key') key: string,
+    @Body() dto: SkillEnabledDto,
+  ): Promise<ApiResponse<{ key: string; enabled: boolean }>> {
+    if (!this.skills.get(key)) {
+      throw new LifeOSError({ code: ErrorCodes.NOT_FOUND, status: 404, message: `unknown skill: ${key}` });
+    }
+    await this.skills.setEnabled(user.id, key, dto.enabled);
+    return ok({ key, enabled: dto.enabled });
   }
 
   @Get('connectors')

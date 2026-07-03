@@ -2,7 +2,7 @@
 // validated tool calls. It NEVER executes or mutates state (docs/02 §7, ADR-0004).
 
 import type { UnifiedContext } from '../context/context.js';
-import type { Tool } from '../tool/tool.js';
+import type { FollowUpSuggestion, Tool } from '../tool/tool.js';
 
 /** DI token for the PlannerPort. */
 export const PLANNER = Symbol('PLANNER');
@@ -18,6 +18,10 @@ export interface ExecutionPlan {
   intent: string;
   steps: PlanStep[];
   requiresUserConfirmation: boolean;
+  /** Next-step buttons the Planner judged relevant to this turn, chosen from the
+   *  available tools' declared `followUps`. Surfaced even when `steps` is empty (a
+   *  purely conversational turn) so the UI can still offer a one-tap next action. */
+  suggestions?: FollowUpSuggestion[];
 }
 
 export interface PlanInput {
