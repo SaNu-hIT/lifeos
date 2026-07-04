@@ -107,6 +107,12 @@ describe('Phase 08 — subscription engine (integration)', () => {
       "select capability_key from billing.capability_grants where user_id = $1 and source = 'subscription' order by capability_key",
       [userId],
     );
-    expect(grants.rows.map((r) => r.capability_key)).toEqual(['ai.advanced_planning', 'grocery.order']);
+    // 'assistant.use' is seeded onto every plan (migration 0042) so the assistant
+    // skill's "what can you do" tool is always available, regardless of tier.
+    expect(grants.rows.map((r) => r.capability_key)).toEqual([
+      'ai.advanced_planning',
+      'assistant.use',
+      'grocery.order',
+    ]);
   });
 });

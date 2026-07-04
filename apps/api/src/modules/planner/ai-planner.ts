@@ -58,6 +58,15 @@ function buildPrompt(intent: string, tools: Tool[], context: UnifiedContext): Ch
         'rather than only replying. For example, if they mention grocery items to buy (e.g. ' +
         '"milk and bread", "oil", "add eggs") add each one with the add-to-list tool — a bare list ' +
         'of items is a request to add them, even without the word "add". ' +
+        'This applies to every domain the tools cover, not just grocery: if the user expresses intent ' +
+        'to start or continue using a capability the platform already has a tool for (e.g. "track my ' +
+        'workouts", "track my period", "schedule a meeting"), CALL the relevant tool(s) yourself — ' +
+        'save a profile, fetch a history summary, log an entry — rather than describing what the ' +
+        'feature could do or recommending third-party apps/services as a substitute. The platform IS ' +
+        'the app the user is asking about; never suggest they go use a different product for something ' +
+        'a listed tool already does. If a tool\'s own description says to ask onboarding questions ' +
+        'before proceeding (e.g. no history yet), ask those questions in your reply — do not skip both ' +
+        'the tool call and the onboarding questions by giving a generic informational answer instead. ' +
         'Use the recent conversation to resolve references to things the user already said ' +
         '(e.g. items they listed earlier).',
     },

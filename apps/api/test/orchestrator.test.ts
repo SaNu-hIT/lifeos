@@ -92,6 +92,24 @@ function buildRegistry(): ToolRegistry {
   return registry;
 }
 
+/** Same tools as `buildRegistry()`, plus one tool gated behind a capability `ctx()`
+ *  never grants — used only by the locked-intent detection tests, kept separate so
+ *  every other test's `listAll()` result (and therefore behavior) is unaffected. */
+function buildRegistryWithLockedTool(): ToolRegistry {
+  const registry = buildRegistry();
+  registry.register({
+    name: 'premium.advanced_report',
+    description: 'Generate an advanced report.',
+    inputSchema: { type: 'object' as const, properties: {} },
+    outputSchema: { type: 'object' as const, properties: {} },
+    requiredCapability: 'premium.use',
+    idempotent: true,
+    requiresConfirmation: false,
+    handler: async (_c, args) => args,
+  });
+  return registry;
+}
+
 function stubConversation() {
   const appended: { role: string; content: unknown }[] = [];
   const conversation: ConversationPort = {
@@ -114,6 +132,8 @@ function stubConversation() {
 
 const stubContext: ContextEnginePort = { assemble: async () => ctx() };
 const stubMemory = { writeSummary: vi.fn(async () => undefined) } as unknown as MemoryPort;
+const stubPlans = { plansGranting: async () => [] };
+const upgradeUrl = 'https://app.lifeos.example/upgrade';
 
 /** A fake AI provider that captures the messages it receives (to inspect the summarizer prompt). */
 function capturingAI(onComplete: (messages: unknown) => void): AIProviderPort {
@@ -128,6 +148,28 @@ function capturingAI(onComplete: (messages: unknown) => void): AIProviderPort {
     },
     embed: async (t) => t.map(() => []),
   };
+}
+
+/** A fake AI provider that returns one scripted response per call (in order) and
+ *  records every call's messages — used to test the locked-intent classification
+ *  call followed by the summarizer call. */
+function scriptedAI(responses: string[]): { ai: AIProviderPort; calls: unknown[] } {
+  const calls: unknown[] = [];
+  let i = 0;
+  const ai: AIProviderPort = {
+    name: 'fake',
+    complete: async (req) => {
+      calls.push(req.messages);
+      const text = responses[i] ?? responses[responses.length - 1] ?? 'ok';
+      i += 1;
+      return { text, model: 'fake' };
+    },
+    async *stream() {
+      yield { text: 'ok' };
+    },
+    embed: async (t) => t.map(() => []),
+  };
+  return { ai, calls };
 }
 
 function planWith(...steps: { tool: string; args: unknown }[]): PlannerPort {
@@ -152,6 +194,8 @@ describe('Orchestrator turn loop', () => {
       new LocalAIProvider(),
       stubMemory,
       planWith({ tool: 'sample.echo', args: { text: 'hi' } }),
+      stubPlans,
+      upgradeUrl,
     );
 
     const result = await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'say hi' });
@@ -172,6 +216,8 @@ describe('Orchestrator turn loop', () => {
       new LocalAIProvider(),
       stubMemory,
       planWith({ tool: 'sample.place_order', args: { text: 'order' } }),
+      stubPlans,
+      upgradeUrl,
     );
 
     const first = await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'order it' });
@@ -197,6 +243,8 @@ describe('Orchestrator turn loop', () => {
       new LocalAIProvider(),
       stubMemory,
       planWith({ tool: 'sample.compare', args: {} }),
+      stubPlans,
+      upgradeUrl,
     );
 
     const first = await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'compare my list' });
@@ -229,6 +277,8 @@ describe('Orchestrator turn loop', () => {
         new LocalAIProvider(),
         stubMemory,
         planWith({ tool: 'sample.suggest', args: { more } }),
+        stubPlans,
+        upgradeUrl,
       );
 
     const withButton = await mk(true).handleTurn({ userId: 'u1', conversationId: 'c1', content: 'go' });
@@ -258,6 +308,8 @@ describe('Orchestrator turn loop', () => {
       new LocalAIProvider(),
       stubMemory,
       plannerWithSuggestions,
+      stubPlans,
+      upgradeUrl,
     );
 
     const result = await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'go' });
@@ -286,6 +338,8 @@ describe('Orchestrator turn loop', () => {
       capturingAI((m) => (sentMessages = m)),
       stubMemory,
       planWith(),
+      stubPlans,
+      upgradeUrl,
     );
 
     await orch.handleTurn({
@@ -294,5 +348,90 @@ describe('Orchestrator turn loop', () => {
       content: 'analyze my shopping list',
     });
     expect(JSON.stringify(sentMessages)).toContain('milk,cheese,pazham');
+  });
+
+  it('nudges an upgrade when an empty plan actually matches a locked tool', async () => {
+    const registry = buildRegistryWithLockedTool();
+    const { conversation } = stubConversation();
+    const { ai, calls } = scriptedAI([
+      '{"matched":true,"toolName":"premium.advanced_report"}', // classification call
+      'Sure — here is the info.', // summarizer call
+    ]);
+    const plans = { plansGranting: async () => [{ key: 'pro', name: 'Pro' }] };
+    const orch = new Orchestrator(
+      conversation,
+      stubContext,
+      registry,
+      ai,
+      stubMemory,
+      planWith(), // empty plan — the trigger condition
+      plans,
+      upgradeUrl,
+    );
+
+    const result = await orch.handleTurn({
+      userId: 'u1',
+      conversationId: 'c1',
+      content: 'generate my advanced report',
+    });
+
+    expect(result.status).toBe('completed');
+    expect(result.suggestedActions).toEqual([
+      { label: 'See upgrade options', prompt: 'What plans are available?', url: upgradeUrl },
+    ]);
+    expect(calls).toHaveLength(2);
+    // The classification call sees the locked tool; the summarizer call gets a note
+    // referencing it (plan name sourced from the lookup, not invented by the model).
+    expect(JSON.stringify(calls[0])).toContain('premium.advanced_report');
+    expect(JSON.stringify(calls[1])).toContain('Pro');
+  });
+
+  it('grounds the summarizer in the user\'s available tools when the plan is empty and nothing is locked', async () => {
+    const registry = buildRegistry();
+    const { conversation } = stubConversation();
+    let sentMessages: unknown;
+    const orch = new Orchestrator(
+      conversation,
+      stubContext,
+      registry,
+      capturingAI((m) => (sentMessages = m)),
+      stubMemory,
+      planWith(), // empty plan — "what can you do?" style turn, no locked tool involved
+      stubPlans,
+      upgradeUrl,
+    );
+
+    await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'what all can I do?' });
+
+    const serialized = JSON.stringify(sentMessages);
+    // The user's permitted tools (name/description) reach the summarizer prompt...
+    expect(serialized).toContain('sample.echo');
+    expect(serialized).toContain('sample.place_order');
+    // ...but a tool the user can't use is never mentioned as available.
+    expect(serialized).not.toContain('premium.advanced_report');
+  });
+
+  it('does not run the locked-intent classification call when the plan is non-empty', async () => {
+    const registry = buildRegistryWithLockedTool();
+    const { conversation } = stubConversation();
+    const { ai, calls } = scriptedAI(['ok']);
+    const plans = { plansGranting: async () => [{ key: 'pro', name: 'Pro' }] };
+    const orch = new Orchestrator(
+      conversation,
+      stubContext,
+      registry,
+      ai,
+      stubMemory,
+      planWith({ tool: 'sample.echo', args: { text: 'hi' } }),
+      plans,
+      upgradeUrl,
+    );
+
+    const result = await orch.handleTurn({ userId: 'u1', conversationId: 'c1', content: 'say hi' });
+
+    expect(result.status).toBe('completed');
+    // Only the summarizer call — no classification call was made.
+    expect(calls).toHaveLength(1);
+    expect(result.suggestedActions).toBeUndefined();
   });
 });

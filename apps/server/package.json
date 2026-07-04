@@ -17,6 +17,12 @@
     "@lifeos/contracts": "workspace:*",
     "@lifeos/skill-grocery": "workspace:*",
     "@lifeos/skill-calendar": "workspace:*",
+    "@lifeos/skill-workout": "workspace:*",
+    "@lifeos/skill-wellness": "workspace:*",
+    "@lifeos/skill-finance": "workspace:*",
+    "@lifeos/skill-meal-planning": "workspace:*",
+    "@lifeos/skill-habit": "workspace:*",
+    "@lifeos/skill-assistant": "workspace:*",
     "@lifeos/connector-blinkit": "workspace:*",
     "@lifeos/connector-blinkit-live": "workspace:*",
     "@lifeos/connector-zepto": "workspace:*",
@@ -29,7 +35,9 @@
     "@lifeos/eslint-config": "workspace:*",
     "@lifeos/tsconfig": "workspace:*",
     "@types/node": "^20.16.5",
+    "@types/pg": "^8.11.10",
     "eslint": "^9.11.1",
+    "pg": "^8.13.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
   }

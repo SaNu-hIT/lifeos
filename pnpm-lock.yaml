@@ -187,12 +187,30 @@ importers:
       '@lifeos/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@lifeos/skill-assistant':
+        specifier: workspace:*
+        version: link:../../skills/assistant
       '@lifeos/skill-calendar':
         specifier: workspace:*
         version: link:../../skills/calendar
+      '@lifeos/skill-finance':
+        specifier: workspace:*
+        version: link:../../skills/finance
       '@lifeos/skill-grocery':
         specifier: workspace:*
         version: link:../../skills/grocery
+      '@lifeos/skill-habit':
+        specifier: workspace:*
+        version: link:../../skills/habit
+      '@lifeos/skill-meal-planning':
+        specifier: workspace:*
+        version: link:../../skills/meal-planning
+      '@lifeos/skill-wellness':
+        specifier: workspace:*
+        version: link:../../skills/wellness
+      '@lifeos/skill-workout':
+        specifier: workspace:*
+        version: link:../../skills/workout
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -206,9 +224,15 @@ importers:
       '@types/node':
         specifier: ^20.16.5
         version: 20.19.43
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)
+      pg:
+        specifier: ^8.13.1
+        version: 8.22.0
       typescript:
         specifier: ^5.6.2
         version: 5.9.3
@@ -589,6 +613,34 @@ importers:
 
   packages/tsconfig: {}
 
+  skills/assistant:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   skills/calendar:
     dependencies:
       '@lifeos/contracts':
@@ -614,7 +666,91 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.43)
 
+  skills/finance:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
   skills/grocery:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  skills/habit:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  skills/meal-planning:
     dependencies:
       '@lifeos/contracts':
         specifier: workspace:*
@@ -657,6 +793,62 @@ importers:
       '@lifeos/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  skills/wellness:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
+      eslint:
+        specifier: ^9.11.1
+        version: 9.39.4(jiti@2.6.1)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.43)
+
+  skills/workout:
+    dependencies:
+      '@lifeos/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@lifeos/skill-sdk':
+        specifier: workspace:*
+        version: link:../../packages/skill-sdk
+    devDependencies:
+      '@lifeos/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@lifeos/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.43
       eslint:
         specifier: ^9.11.1
         version: 9.39.4(jiti@2.6.1)

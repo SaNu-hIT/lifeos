@@ -46,10 +46,13 @@ export interface TurnTrace {
 }
 
 /** A one-tap next step offered after a turn completes (e.g. "Compare prices" after
- *  items were added). Tapping it sends `prompt` back as an ordinary user message. */
+ *  items were added). Tapping it sends `prompt` back as an ordinary user message.
+ *  When `url` is present (e.g. an upgrade nudge), the UI should open it as an
+ *  external link instead — informational only, never triggers a plan change. */
 export interface SuggestedAction {
   label: string;
   prompt: string;
+  url?: string;
 }
 
 export interface TurnResult {

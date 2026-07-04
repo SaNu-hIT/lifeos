@@ -35,6 +35,9 @@ export const AppConfigSchema = z
     DB_CONN_TIMEOUT_MS: z.coerce.number().int().min(0).default(5_000),
     // Max accepted request body (docs/11 §4). Bounded to blunt payload-flood DoS.
     MAX_BODY_SIZE: z.string().default('1mb'),
+    // Informational link the assistant skill surfaces when nudging an upgrade — no
+    // real payment processor is wired yet, so this just points at the pricing page.
+    UPGRADE_URL: z.string().default('https://app.lifeos.example/upgrade'),
   })
   .superRefine((cfg, ctx) => {
     // Fail the boot rather than run production on the shipped dev secret.

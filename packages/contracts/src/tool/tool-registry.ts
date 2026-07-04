@@ -49,6 +49,9 @@ export interface ToolRegistryPort {
   get(name: string): Tool | undefined;
   /** Tools the context is permitted to see (capability-filtered). */
   list(ctx: UnifiedContext): Tool[];
+  /** Every registered tool, unfiltered — used only to detect intent toward a
+   *  currently-locked tool (e.g. the upgrade nudge), never to execute one. */
+  listAll(): Tool[];
   execute(
     name: string,
     ctx: UnifiedContext,

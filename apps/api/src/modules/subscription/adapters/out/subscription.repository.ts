@@ -64,4 +64,17 @@ export class SubscriptionRepository {
     const row = result.rows[0];
     return row ? { active: row.status === 'active', planKey: row.plan_key } : { active: false };
   }
+
+  /** Which plans (key + name) grant a given capability — used to tell a user which
+   *  plan they'd need to unlock a currently-locked feature (never mutates anything). */
+  async plansGranting(capabilityKey: string): Promise<{ key: string; name: string }[]> {
+    const result = await this.db.query<{ key: string; name: string }>(
+      `select p.key, p.name
+         from billing.plan_capabilities pc
+         join billing.plans p on p.key = pc.plan_key
+        where pc.capability_key = $1`,
+      [capabilityKey],
+    );
+    return result.rows;
+  }
 }

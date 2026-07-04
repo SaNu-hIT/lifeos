@@ -50,12 +50,14 @@ export async function bootstrap(): Promise<void> {
   // Install the Skills through the single SkillHost seam.
   const db = app.get<DatabasePort>(DATABASE);
   const host = app.get<SkillHost>(SKILL_HOST);
-  await host.installAll(buildManifests(publish, { db, connectors }));
+  const manifests = buildManifests(publish, { db, connectors, upgradeUrl: config.UPGRADE_URL });
+  await host.installAll(manifests);
 
   app.enableShutdownHooks();
   await app.listen(config.PORT);
+  const skillKeys = manifests.map((m) => m.key).join(' + ');
   // eslint-disable-next-line no-console
-  console.log(`LifeOS composed server listening on :${config.PORT} (grocery + calendar installed)`);
+  console.log(`LifeOS composed server listening on :${config.PORT} (${skillKeys} installed)`);
 }
 
 // Auto-start only when this file is the process entry point (not when imported).

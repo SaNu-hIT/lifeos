@@ -90,10 +90,12 @@ export interface PriceMatrix {
 }
 
 /** A one-tap next step suggested after a turn (e.g. "Compare prices"). Tapping it
- *  sends `prompt` as an ordinary message. */
+ *  sends `prompt` as an ordinary message — unless `url` is present (e.g. an upgrade
+ *  nudge), in which case it opens the link instead and never sends a message. */
 export interface SuggestedAction {
   label: string;
   prompt: string;
+  url?: string;
 }
 
 export interface TurnResult {

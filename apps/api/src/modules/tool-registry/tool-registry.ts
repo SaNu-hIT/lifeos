@@ -51,6 +51,10 @@ export class ToolRegistry implements ToolRegistryPort {
     );
   }
 
+  listAll(): Tool[] {
+    return [...this.tools.values()];
+  }
+
   async execute(
     name: string,
     ctx: UnifiedContext,

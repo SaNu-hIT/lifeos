@@ -30,9 +30,22 @@ class FakeConnectorRegistry implements ConnectorRegistryPort {
 }
 
 describe('composition — buildManifests', () => {
-  it('installs grocery + calendar with their tools', () => {
-    const manifests = buildManifests(async () => {}, { db: fakeDb, connectors: new FakeConnectorRegistry() });
-    expect(manifests.map((m) => m.key)).toEqual(['grocery', 'calendar']);
+  it('installs grocery + calendar + workout + wellness + finance + meal + habit with their tools', () => {
+    const manifests = buildManifests(async () => {}, {
+      db: fakeDb,
+      connectors: new FakeConnectorRegistry(),
+      upgradeUrl: 'https://app.lifeos.example/upgrade',
+    });
+    expect(manifests.map((m) => m.key)).toEqual([
+      'grocery',
+      'calendar',
+      'workout',
+      'wellness',
+      'finance',
+      'meal',
+      'habit',
+      'assistant',
+    ]);
     const toolNames = manifests.flatMap((m) => m.tools.map((t) => t.name));
     expect(toolNames).toEqual(
       expect.arrayContaining([
@@ -42,6 +55,19 @@ describe('composition — buildManifests', () => {
         'grocery.get_list',
         'grocery.compare_prices',
         'calendar.schedule_event',
+        'workout.start_session',
+        'workout.log_set',
+        'workout.get_history_summary',
+        'wellness.log_day',
+        'wellness.get_history_summary',
+        'wellness.list_reminders',
+        'finance.log_transaction',
+        'finance.get_summary',
+        'meal.plan_meal',
+        'meal.generate_grocery_list',
+        'habit.check_in',
+        'habit.get_summary',
+        'assistant.list_capabilities',
       ]),
     );
     // Each Skill contributes its surface (widgets/activity/notification).

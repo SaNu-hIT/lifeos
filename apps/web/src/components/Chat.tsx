@@ -172,17 +172,29 @@ export function Chat({ api }: Props) {
 
       {suggestions.length > 0 && !pending && !pendingClarification && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
-          {suggestions.map((s) => (
-            <button
-              key={s.label}
-              type="button"
-              style={suggestionBtn}
-              disabled={busy}
-              onClick={() => sendSuggestion(s)}
-            >
-              {s.label}
-            </button>
-          ))}
+          {suggestions.map((s) =>
+            s.url ? (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ ...suggestionBtn, textDecoration: 'none', display: 'inline-block' }}
+              >
+                {s.label}
+              </a>
+            ) : (
+              <button
+                key={s.label}
+                type="button"
+                style={suggestionBtn}
+                disabled={busy}
+                onClick={() => sendSuggestion(s)}
+              >
+                {s.label}
+              </button>
+            ),
+          )}
         </div>
       )}
 
