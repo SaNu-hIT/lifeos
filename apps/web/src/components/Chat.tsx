@@ -134,85 +134,87 @@ export function Chat({ api }: Props) {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '70vh' }}>
-      <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gap: 10, alignContent: 'start' }}>
-        {turns.length === 0 && (
-          <p style={{ color: '#9aa4bf' }}>Ask LifeOS anything — e.g. “search for milk” or “place my order”.</p>
+    <div style={{ display: 'flex', gap: 16, height: '70vh' }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gap: 10, alignContent: 'start' }}>
+          {turns.length === 0 && (
+            <p style={{ color: '#9aa4bf' }}>Ask LifeOS anything — e.g. “search for milk” or “place my order”.</p>
+          )}
+          {turns.map((t, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: t.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={bubble(t.role)}>{t.content}</div>
+              {t.priceMatrix && (
+                <div style={{ maxWidth: '95%' }}>
+                  <PriceMatrixTable matrix={t.priceMatrix} />
+                </div>
+              )}
+            </div>
+          ))}
+          {busy && <div style={{ color: '#9aa4bf', fontSize: 14 }}>LifeOS is thinking…</div>}
+        </div>
+
+        {error && <div style={{ color: '#ff9db0', fontSize: 14, margin: '8px 0' }}>{error}</div>}
+
+        {pending && !busy && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
+            <span style={{ color: '#ffcf8b', fontSize: 14 }}>Confirm {pending.toolName}?</span>
+            <button style={confirmBtn} onClick={confirm}>Confirm</button>
+            <button style={cancelBtn} onClick={() => setPending(null)}>Cancel</button>
+          </div>
         )}
-        {turns.map((t, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: t.role === 'user' ? 'flex-end' : 'flex-start' }}>
-            <div style={bubble(t.role)}>{t.content}</div>
-            {t.priceMatrix && (
-              <div style={{ maxWidth: '95%' }}>
-                <PriceMatrixTable matrix={t.priceMatrix} />
-              </div>
+
+        {pendingClarification && (
+          <ClarificationQuestion
+            choices={pendingClarification.choices}
+            busy={busy}
+            onSubmit={answerClarification}
+          />
+        )}
+
+        {suggestions.length > 0 && !pending && !pendingClarification && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
+            {suggestions.map((s) =>
+              s.url ? (
+                <a
+                  key={s.label}
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ ...suggestionBtn, textDecoration: 'none', display: 'inline-block' }}
+                >
+                  {s.label}
+                </a>
+              ) : (
+                <button
+                  key={s.label}
+                  type="button"
+                  style={suggestionBtn}
+                  disabled={busy}
+                  onClick={() => sendSuggestion(s)}
+                >
+                  {s.label}
+                </button>
+              ),
             )}
           </div>
-        ))}
-        {busy && <div style={{ color: '#9aa4bf', fontSize: 14 }}>LifeOS is thinking…</div>}
+        )}
+
+        <form
+          style={{ display: 'flex', gap: 8, marginTop: 12 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
+          <input
+            style={inputStyle}
+            value={input}
+            placeholder="Message LifeOS…"
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <button type="submit" style={sendBtn} disabled={busy}>Send</button>
+        </form>
       </div>
-
-      {error && <div style={{ color: '#ff9db0', fontSize: 14, margin: '8px 0' }}>{error}</div>}
-
-      {pending && !busy && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
-          <span style={{ color: '#ffcf8b', fontSize: 14 }}>Confirm {pending.toolName}?</span>
-          <button style={confirmBtn} onClick={confirm}>Confirm</button>
-          <button style={cancelBtn} onClick={() => setPending(null)}>Cancel</button>
-        </div>
-      )}
-
-      {pendingClarification && (
-        <ClarificationQuestion
-          choices={pendingClarification.choices}
-          busy={busy}
-          onSubmit={answerClarification}
-        />
-      )}
-
-      {suggestions.length > 0 && !pending && !pendingClarification && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
-          {suggestions.map((s) =>
-            s.url ? (
-              <a
-                key={s.label}
-                href={s.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{ ...suggestionBtn, textDecoration: 'none', display: 'inline-block' }}
-              >
-                {s.label}
-              </a>
-            ) : (
-              <button
-                key={s.label}
-                type="button"
-                style={suggestionBtn}
-                disabled={busy}
-                onClick={() => sendSuggestion(s)}
-              >
-                {s.label}
-              </button>
-            ),
-          )}
-        </div>
-      )}
-
-      <form
-        style={{ display: 'flex', gap: 8, marginTop: 12 }}
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-      >
-        <input
-          style={inputStyle}
-          value={input}
-          placeholder="Message LifeOS…"
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button type="submit" style={sendBtn} disabled={busy}>Send</button>
-      </form>
 
       <TraceLog trace={trace} />
     </div>
@@ -289,7 +291,8 @@ const suggestionBtn: React.CSSProperties = {
   padding: '7px 14px', fontSize: 13.5, cursor: 'pointer',
 };
 const logPanel: React.CSSProperties = {
-  marginTop: 12, background: '#0d1220', border: '1px solid #1c2333', borderRadius: 10,
+  width: 320, flexShrink: 0, alignSelf: 'stretch', overflowY: 'auto',
+  background: '#0d1220', border: '1px solid #1c2333', borderRadius: 10,
   padding: '10px 14px', fontFamily: 'ui-monospace, monospace', fontSize: 12.5,
 };
 const logHeader: React.CSSProperties = {

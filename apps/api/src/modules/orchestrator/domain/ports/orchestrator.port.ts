@@ -35,6 +35,8 @@ export interface ClarificationChoice {
 /** A step-by-step trace of the turn pipeline, for the UI's execution log (introspection). */
 export interface TurnTrace {
   scope: string;
+  /** How this turn was classified before planning (phase-1 state-awareness). */
+  intent?: 'read' | 'write' | 'analysis' | 'chat';
   capabilities: string[];
   availableTools: string[];
   plan: { tool: string; args: unknown }[];

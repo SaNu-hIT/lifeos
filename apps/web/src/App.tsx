@@ -85,7 +85,7 @@ export function App() {
 
       {error && <div style={styles.error}>{error}</div>}
 
-      <main style={styles.main}>
+      <main style={tab === 'chat' ? { ...styles.main, maxWidth: 1200 } : styles.main}>
         {!token ? (
           <div style={styles.empty}>
             <h2>Welcome to LifeOS</h2>

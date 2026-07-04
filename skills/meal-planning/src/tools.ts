@@ -100,6 +100,9 @@ export function createMealPlanningTools(deps: MealPlanningToolDeps): Tool[] {
     requiredCapability: 'meal.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [
+      { label: 'Generate grocery list', prompt: 'generate a grocery list from my meal plan' },
+    ],
     handler: async (ctx: UnifiedContext, args: PlanMealArgs) => {
       const matched = await deps.catalog.findByName(normalizeFoodName(args.foodName));
       const meal: PlannedMeal = {
@@ -229,6 +232,7 @@ export function createMealPlanningTools(deps: MealPlanningToolDeps): Tool[] {
     requiredCapability: 'meal.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: "View today's nutrition", prompt: "show my nutrition summary for today" }],
     handler: async (ctx: UnifiedContext, args: LogFoodArgs) => {
       const servings = args.servings ?? 1;
       const matched = await deps.catalog.findByName(normalizeFoodName(args.foodName));

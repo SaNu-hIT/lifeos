@@ -36,6 +36,9 @@ export function createCalendarTools(deps: CalendarToolDeps): Tool[] {
 
   const listEvents: Tool<ListArgs, { events: CalendarEvent[] }> = {
     name: 'calendar.list_events',
+    description:
+      'Read meetings/events from the user\'s calendar for a date range. Use for questions like ' +
+      '"any meetings tomorrow?", "what\'s on my calendar?", or "show my schedule".',
     inputSchema: {
       type: 'object',
       properties: { from: { type: 'string' }, to: { type: 'string' } },

@@ -118,6 +118,7 @@ export function createFinanceTools(deps: FinanceToolDeps): Tool[] {
     requiredCapability: 'finance.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: "View this month's summary", prompt: 'show my finance summary for this month' }],
     handler: async (ctx: UnifiedContext, args: LogTransactionArgs) => {
       const currency = await resolveCurrency(ctx.user.id);
       const occurredAt = args.occurredAt ?? now();
@@ -262,6 +263,7 @@ export function createFinanceTools(deps: FinanceToolDeps): Tool[] {
     requiredCapability: 'finance.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: 'View upcoming bills', prompt: 'what bills are coming up' }],
     handler: async (ctx: UnifiedContext, args: AddRecurringPaymentArgs) => {
       const currency = await resolveCurrency(ctx.user.id, args.currency);
       const payment: RecurringPayment = {
@@ -300,6 +302,7 @@ export function createFinanceTools(deps: FinanceToolDeps): Tool[] {
     requiredCapability: 'finance.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: "View this month's summary", prompt: 'show my finance summary for this month' }],
     handler: async (ctx: UnifiedContext, args: SetBudgetArgs) => {
       const currency = await resolveCurrency(ctx.user.id, args.currency);
       const budget: BudgetLimit = {

@@ -118,7 +118,7 @@ export function createWellnessTools(deps: WellnessToolDeps): Tool[] {
   const { newId } = deps;
   const now = () => deps.now?.() ?? new Date().toISOString();
 
-  const logDay: Tool<LogDayArgs, { date: string; saved: true }> = {
+  const logDay: Tool<LogDayArgs, { date: string; saved: true; flow?: FlowIntensity; symptoms?: string[] }> = {
     name: 'wellness.log_day',
     description:
       "Log or correct a single day's cycle data (flow intensity, symptoms, basal body " +
@@ -142,21 +142,33 @@ export function createWellnessTools(deps: WellnessToolDeps): Tool[] {
     requiredCapability: 'wellness.track',
     idempotent: false,
     requiresConfirmation: false,
+    // Self-aware next step: nudge for whichever of flow/symptoms this call didn't
+    // just capture, so a bare "started today" is followed by "how's the flow?" and
+    // a flow-only log is followed by "any symptoms?" — never both at once.
+    followUpsFor: (out) => {
+      if (!out.flow) {
+        return [{ label: "Log today's flow", prompt: `log flow for ${out.date}` }];
+      }
+      if (!out.symptoms || out.symptoms.length === 0) {
+        return [{ label: 'Log symptoms', prompt: `log symptoms for ${out.date}` }];
+      }
+      return [];
+    },
     handler: async (ctx: UnifiedContext, args: LogDayArgs) => {
       const existing = (await deps.entries.entriesInRange(ctx.user.id, args.date, args.date))[0];
       const entry: CycleDayEntry = {
         id: existing?.id ?? newId(),
         userId: ctx.user.id,
         date: args.date,
-        flow: args.flow,
-        symptoms: args.symptoms,
+        flow: args.flow ?? existing?.flow,
+        symptoms: args.symptoms ?? existing?.symptoms,
         basalBodyTempC: args.basalBodyTempC,
         notes: args.notes,
         createdAt: existing?.createdAt ?? now(),
         updatedAt: now(),
       };
       await deps.entries.upsertEntry(entry);
-      return { date: args.date, saved: true };
+      return { date: args.date, saved: true, flow: entry.flow, symptoms: entry.symptoms };
     },
   };
 
@@ -250,6 +262,9 @@ export function createWellnessTools(deps: WellnessToolDeps): Tool[] {
     requiredCapability: 'wellness.track',
     idempotent: false,
     requiresConfirmation: false,
+    // Onboarding's natural next step is the first day log — offer it once the
+    // profile questions are answered.
+    followUps: [{ label: "Log today's flow", prompt: "log today's period flow" }],
     handler: async (ctx: UnifiedContext, args: SaveProfileArgs) => {
       const existing = await deps.profiles.getProfile(ctx.user.id);
       const profile: WellnessProfile = {

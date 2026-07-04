@@ -26,39 +26,48 @@ export class ContextEngine implements ContextEnginePort {
   ) {}
 
   private cacheKey(input: AssembleInput): string {
-    return `ctx:${input.userId}:${input.scope}:${input.intentHint ?? ''}`;
+    return `ctx:${input.userId}:${input.conversationId}:${input.scope}:${input.intentHint ?? ''}`;
   }
 
   async assemble(input: AssembleInput): Promise<UnifiedContext> {
     const key = this.cacheKey(input);
     const cached = await this.cache.get(key);
-    if (cached !== null) return JSON.parse(cached) as UnifiedContext;
+    let context: UnifiedContext;
 
-    const [capabilities, user, memory, recentTurns, settings] = await Promise.all([
-      this.permissions.capabilitiesFor(input.userId),
-      this.users.get(input.userId),
-      this.memory.retrieve(input.userId, { query: input.intentHint ?? '', scope: input.scope }),
-      this.conversation.recent(input.conversationId, input.userId),
-      this.settings.get(input.userId),
-    ]);
+    if (cached !== null) {
+      context = JSON.parse(cached) as UnifiedContext;
+    } else {
+      const [capabilities, user, memory, settings] = await Promise.all([
+        this.permissions.capabilitiesFor(input.userId),
+        this.users.get(input.userId),
+        this.memory.retrieve(input.userId, { query: input.intentHint ?? '', scope: input.scope }),
+        this.settings.get(input.userId),
+      ]);
 
-    let context: UnifiedContext = {
-      user,
-      capabilities,
-      conversation: { id: input.conversationId, recentTurns },
-      memory,
-      settings,
-      scope: input.scope,
-      now: new Date().toISOString(),
-    };
+      context = {
+        user,
+        capabilities,
+        conversation: { id: input.conversationId, recentTurns: [] },
+        memory,
+        settings,
+        scope: input.scope,
+        now: new Date().toISOString(),
+      };
 
-    // Compose Skill-contributed providers for this scope.
-    for (const provider of this.providers.providersFor(input.scope)) {
-      context = merge(context, await provider.contribute(input));
+      for (const provider of this.providers.providersFor(input.scope)) {
+        context = merge(context, await provider.contribute(input));
+      }
+
+      await this.cache.set(key, JSON.stringify(context), CACHE_TTL_SECONDS);
     }
 
-    await this.cache.set(key, JSON.stringify(context), CACHE_TTL_SECONDS);
-    return context;
+    // Conversation turns are never served from cache — they change every message.
+    const recentTurns = await this.conversation.recent(input.conversationId, input.userId);
+    return {
+      ...context,
+      conversation: { id: input.conversationId, recentTurns },
+      now: new Date().toISOString(),
+    };
   }
 }
 

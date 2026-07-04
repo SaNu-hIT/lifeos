@@ -201,6 +201,9 @@ export function createWorkoutTools(deps: WorkoutToolDeps): Tool[] {
     requiredCapability: 'workout.track',
     idempotent: false,
     requiresConfirmation: false,
+    // After a logged set, the natural next step is either another set or wrapping
+    // up — offer finishing since it needs no further data from the user.
+    followUps: [{ label: 'Finish workout', prompt: 'finish my workout' }],
     handler: async (ctx: UnifiedContext, args: LogSetArgs) => {
       const session = await resolveActiveSession(ctx.user.id, args.sessionId);
 
@@ -367,6 +370,7 @@ export function createWorkoutTools(deps: WorkoutToolDeps): Tool[] {
     requiredCapability: 'workout.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: 'View workout summary', prompt: 'how did my workout go' }],
     handler: async (ctx: UnifiedContext, args: FinishSessionArgs) => {
       const session = await resolveActiveSession(ctx.user.id, args.sessionId);
 
@@ -573,6 +577,7 @@ export function createWorkoutTools(deps: WorkoutToolDeps): Tool[] {
     requiredCapability: 'workout.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: 'Start a workout', prompt: 'start a workout session' }],
     handler: async (ctx: UnifiedContext, args: SaveProfileArgs) => {
       const existing = await deps.profiles.getProfile(ctx.user.id);
       const profile: WorkoutProfile = {

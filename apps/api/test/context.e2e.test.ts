@@ -106,7 +106,7 @@ describe('Phase 13 — context engine (integration)', () => {
   it('caches the assembled context (short TTL)', async () => {
     const input = { userId, conversationId: 'conv-1', scope: 'grocery', intentHint: 'milk' };
     await engine.assemble(input);
-    expect(cache.store.has(`ctx:${userId}:grocery:milk`)).toBe(true);
+    expect(cache.store.has(`ctx:${userId}:conv-1:grocery:milk`)).toBe(true);
     // Second call is served from cache (same object shape).
     const again = await engine.assemble(input);
     expect(again.user.id).toBe(userId);

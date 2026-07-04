@@ -2,10 +2,18 @@ import { randomUUID } from 'node:crypto';
 import type {
   AIProviderPort,
 } from '@lifeos/ai-core';
-import type { PlannerPort, Tool, ToolRegistryPort, UnifiedContext } from '@lifeos/contracts';
+import type { ExecutionPlan, PlannerPort, Tool, ToolRegistryPort, UnifiedContext } from '@lifeos/contracts';
 import { renderRecentTurns } from '../../shared/ai/render-conversation.js';
 import type { ContextEnginePort } from '../context/domain/ports/context-engine.port.js';
 import type { ConversationPort } from '../conversation/domain/ports/conversation.port.js';
+import { classifyIntent, shouldUsePlanner } from '../intent/intent-router.js';
+import type { IntentClassification, IntentKind } from '../intent/intent.types.js';
+import { resolveReadPlan } from '../intent/read-plan-resolver.js';
+import {
+  composeReadFailureResponse,
+  composeReadResponse,
+  composeWriteFailureResponse,
+} from '../intent/read-response-composer.js';
 import type { MemoryPort } from '../memory/domain/ports/memory.port.js';
 import type { PlanCapabilityLookupPort } from '../subscription/domain/ports/plan-capability-lookup.port.js';
 import type {
@@ -65,13 +73,19 @@ export class Orchestrator implements OrchestratorPort {
       intentHint: input.content,
     });
 
-    // 3. Plan over the tools the user is permitted to use.
+    // 3. Classify intent, then plan. READ queries get a mandatory read tool — never
+    // answered from conversation history alone (phase-1 state-awareness).
     const availableTools = this.tools.list(ctx);
-    const plan = await this.planner.plan({ intent: input.content, context: ctx, tools: availableTools });
+    const intent = shouldUsePlanner(input)
+      ? ({ kind: 'write' as const } satisfies IntentClassification)
+      : classifyIntent(input.content, availableTools, ctx);
+
+    const plan = await this.resolvePlan(input, intent, availableTools, ctx);
 
     // A live trace of the pipeline, surfaced to the UI's execution log.
     const trace: TurnTrace = {
       scope,
+      intent: intent.kind,
       capabilities: ctx.capabilities,
       availableTools: availableTools.map((t) => t.name),
       plan: plan.steps.map((s) => ({ tool: s.tool, args: s.args })),
@@ -143,54 +157,121 @@ export class Orchestrator implements OrchestratorPort {
         capabilitiesNote = renderCapabilitiesNote(availableTools);
       }
     }
+    // Nothing ran this turn — make that explicit to the summarizer. Without this it
+    // has been observed to fabricate a confirmation ("logged your period flow") for
+    // an action that never happened, which is worse than admitting nothing was saved.
+    const noActionNote =
+      plan.steps.length === 0
+        ? '[SYSTEM NOTE: no tool executed this turn — nothing was saved, logged, or changed. ' +
+          'Do not tell the user an action was performed or confirmed. If their message was ' +
+          "trying to log/save something, ask what's missing instead of pretending it's done.]"
+        : undefined;
 
-    // 5. Summarize the outcome (the AI only summarizes; it holds no logic).
-    const summary = await this.ai.complete({
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Summarize the outcome for the user. Use the recent conversation for context — ' +
-            "don't ask the user to repeat information they already gave in an earlier turn. " +
-            'If a tool result contains a breakdown across multiple stores/items (e.g. a price ' +
-            'comparison), report every store/item found, not just the single cheapest — the user ' +
-            'asked to see the full comparison, so omitting entries is not a helpful summary. ' +
-            "If the message below includes a list of the user's available tools/capabilities, " +
-            'and the user asked what the assistant can do (or something equivalent), answer from ' +
-            'that list in plain language — describe the actual things they can ask for, grouped ' +
-            'sensibly, not a vague generic answer. Never invent capabilities not in the list.',
-        },
-        {
-          role: 'user',
-          content:
-            `Recent conversation:\n${renderRecentTurns(ctx.conversation.recentTurns)}\n\n` +
-            `${renderSummaryInput(input.content, results)}` +
-            (lockedFeatureNote ? `\n\n${lockedFeatureNote}` : '') +
-            (capabilitiesNote ? `\n\n${capabilitiesNote}` : ''),
-        },
-      ],
+    // 5. Compose the user-facing reply — mode depends on intent.
+    const summaryText = await this.composeReply({
+      intent,
+      input,
+      ctx,
+      results,
+      availableTools,
+      lockedFeatureNote,
+      capabilitiesNote,
+      noActionNote,
     });
 
-    // 6. Persist the assistant reply and write a turn summary to memory.
+    // 6. Persist the assistant reply; skip memory for pure reads (Skill DB is truth).
     await this.conversation.appendMessage({
       conversationId: input.conversationId,
       userId: input.userId,
       role: 'assistant',
-      content: { text: summary.text },
+      content: { text: summaryText },
       turnId,
     });
-    await this.memory.writeSummary(input.userId, {
-      conversationId: input.conversationId,
-      summary: summary.text,
-    });
+    if (intent.kind !== 'read') {
+      await this.memory.writeSummary(input.userId, {
+        conversationId: input.conversationId,
+        summary: summaryText,
+      });
+    }
 
     return {
       turnId,
       status: 'completed',
-      assistantMessage: { content: summary.text, priceMatrix: extractPriceMatrix(results) },
+      assistantMessage: { content: summaryText, priceMatrix: extractPriceMatrix(results) },
       ...(suggestedActions.length > 0 ? { suggestedActions } : {}),
       trace,
     };
+  }
+
+  private async resolvePlan(
+    input: TurnInput,
+    intent: IntentClassification,
+    tools: Tool[],
+    ctx: UnifiedContext,
+  ): Promise<ExecutionPlan> {
+    if (shouldUsePlanner(input)) {
+      return this.planner.plan({ intent: input.content, context: ctx, tools });
+    }
+
+    if (intent.kind === 'read' && intent.readTool) {
+      const resolved = resolveReadPlan(intent.readTool, input.content, ctx);
+      return {
+        planId: `pl_${randomUUID()}`,
+        intent: input.content,
+        steps: resolved.steps,
+        requiresUserConfirmation: false,
+      };
+    }
+
+    if (intent.kind === 'chat') {
+      return { planId: `pl_${randomUUID()}`, intent: input.content, steps: [], requiresUserConfirmation: false };
+    }
+
+    return this.planner.plan({ intent: input.content, context: ctx, tools });
+  }
+
+  private async composeReply(opts: {
+    intent: IntentClassification;
+    input: TurnInput;
+    ctx: UnifiedContext;
+    results: StepResult[];
+    availableTools: Tool[];
+    lockedFeatureNote?: string;
+    capabilitiesNote?: string;
+    noActionNote?: string;
+  }): Promise<string> {
+    const { intent, input, ctx, results, lockedFeatureNote, capabilitiesNote, noActionNote } = opts;
+
+    // READ: ground ONLY in tool output — never conversation history.
+    if (intent.kind === 'read') {
+      if (results.length === 0) return composeReadFailureResponse();
+      return composeReadResponse(input.content, results);
+    }
+
+    // WRITE with zero execution: fail closed instead of hallucinating confirmation.
+    if (intent.kind === 'write' && results.length === 0 && !lockedFeatureNote) {
+      return composeWriteFailureResponse();
+    }
+
+    const useHistory = intent.kind !== 'read';
+    const { text } = await this.ai.complete({
+      messages: [
+        {
+          role: 'system',
+          content: buildSummarizerSystemPrompt(intent.kind, useHistory),
+        },
+        {
+          role: 'user',
+          content:
+            (useHistory ? `Recent conversation:\n${renderRecentTurns(ctx.conversation.recentTurns)}\n\n` : '') +
+            `${renderSummaryInput(input.content, results)}` +
+            (lockedFeatureNote ? `\n\n${lockedFeatureNote}` : '') +
+            (capabilitiesNote ? `\n\n${capabilitiesNote}` : '') +
+            (noActionNote ? `\n\n${noActionNote}` : ''),
+        },
+      ],
+    });
+    return text;
   }
 
   /**
@@ -251,6 +332,28 @@ export class Orchestrator implements OrchestratorPort {
       'beyond what is given here.]'
     );
   }
+}
+
+function buildSummarizerSystemPrompt(kind: IntentKind, useHistory: boolean): string {
+  const base =
+    'Summarize the outcome for the user. ' +
+    'If a tool result contains a breakdown across multiple stores/items (e.g. a price ' +
+    'comparison), report every store/item found, not just the single cheapest — the user ' +
+    'asked to see the full comparison, so omitting entries is not a helpful summary. ' +
+    "If the message below includes a list of the user's available tools/capabilities, " +
+    'and the user asked what the assistant can do (or something equivalent), answer from ' +
+    'that list in plain language — describe the actual things they can ask for, grouped ' +
+    'sensibly, not a vague generic answer. Never invent capabilities not in the list. ' +
+    'Only confirm an action (saved/logged/started/updated/deleted) if a tool result below ' +
+    'actually shows it happened — never state or imply something was recorded when no tool ran.';
+
+  if (!useHistory) return base;
+
+  return (
+    base +
+    " Use the recent conversation for context — don't ask the user to repeat information " +
+    'they already gave in an earlier turn.'
+  );
 }
 
 function renderSummaryInput(userContent: string, results: StepResult[]): string {

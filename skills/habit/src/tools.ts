@@ -76,6 +76,7 @@ export function createHabitTools(deps: HabitToolDeps): Tool[] {
     requiredCapability: 'habit.track',
     idempotent: false,
     requiresConfirmation: false,
+    followUps: [{ label: 'View my habits', prompt: 'show my habits' }],
     handler: async (ctx: UnifiedContext, args: CreateHabitArgs) => {
       const habit: Habit = {
         id: newId(),
@@ -116,6 +117,10 @@ export function createHabitTools(deps: HabitToolDeps): Tool[] {
     requiredCapability: 'habit.track',
     idempotent: true,
     requiresConfirmation: false,
+    // Streak news is the reward for checking in — offer it, but only when there's
+    // an actual streak to see (skip on a "not done" check-in).
+    followUpsFor: (out) =>
+      out.streak > 0 ? [{ label: 'View my streaks', prompt: 'how are my habits doing' }] : [],
     handler: async (ctx: UnifiedContext, args: CheckInArgs) => {
       const habit = await deps.habits.getHabit(ctx.user.id, args.habitId);
       if (!habit) throw new Error('habit not found');

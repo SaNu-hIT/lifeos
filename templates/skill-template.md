@@ -77,6 +77,10 @@ export const buildCartTool: Tool</*In*/, /*Out*/> = {
   requiredCapability: '<skill>.order',
   idempotent: false,
   requiresConfirmation: true,
+  // Next-step buttons offered after this tool succeeds (docs/02 §11). Use the static
+  // form when the next step is always relevant, or `followUpsFor(output, ctx)` when
+  // it depends on the result (e.g. only offer it while a field is still missing).
+  followUps: [{ label: '<Do the natural next thing>', prompt: '<message that triggers it>' }],
   async handler(ctx, args) {
     // ctx: UnifiedContext (already permission-filtered) — DO NOT query DB for cross-cutting data
     // call application command; provider access via Connector Registry (never name a vendor)
@@ -92,6 +96,7 @@ export const buildCartTool: Tool</*In*/, /*Out*/> = {
 - [ ] Reads cross-cutting data only from `UnifiedContext` ([ADR-0007](../docs/adr/adr-0007-context-engine.md)); owns its domain schema.
 - [ ] Reaches providers only via the Connector Registry / Provider SDK ([ADR-0005](../docs/adr/adr-0005-provider-sdk.md)).
 - [ ] Every tool declares `requiredCapability`; consequential tools set `requiresConfirmation`.
+- [ ] Every mutating tool considers `followUps`/`followUpsFor` — a real next step (button and/or a follow-up question) offered to the user, or an explicit call that none applies.
 - [ ] No hardcoded values (providers, prices, flags) — config/manifest only.
 - [ ] Cross-Skill effects via **events**, not direct calls.
 

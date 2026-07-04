@@ -20,7 +20,7 @@ audience: AI agents (read FIRST) + reviewers
 | Field | Value |
 |-------|-------|
 | **Current Phase** | _Roadmap complete (01–36). **Post-roadmap: Skills wired live + orchestration verified end-to-end.**_ |
-| **Next Phase** | — Optional enhancements: real Postgres persistence for Grocery/Calendar, OpenAI provider, realtime SSE query-token, Supabase, Flutter mobile. |
+| **Next Phase** | — Optional enhancements: real Postgres persistence for Grocery/Calendar, OpenAI provider, realtime SSE query-token, Supabase, Flutter mobile. Next Skills spec'd (not started): Gmail Summarizer + WhatsApp Messenger — see [NEXT_SKILLS_BACKLOG.md](NEXT_SKILLS_BACKLOG.md). |
 | **Last completed phase** | Post-36 — live skill composition (`apps/server`) + deterministic local planner |
 | **Contract version** (`@lifeos/contracts`) | `0.10.0` |
 | **Database version** (latest migration) | `0016_perf_indexes` |

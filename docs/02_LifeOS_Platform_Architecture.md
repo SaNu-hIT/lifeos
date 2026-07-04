@@ -403,6 +403,7 @@ A **Tool** is the unit the Planner can call. Tools are how Skills expose capabil
 - Each tool declares: `name` (namespaced, e.g. `grocery.build_cart`), JSON-schema `input`/`output`, the **capability** it requires, idempotency semantics, and whether it needs user confirmation.
 - The **Tool Registry** validates arguments against the schema *before* execution and the result *after*, rejecting malformed calls. This is the safety boundary between a probabilistic planner and deterministic execution.
 - Tools receive `(UnifiedContext, args)` and return a typed result. They must be **pure with respect to provider choice** — they call the Connector Registry, which selects the provider.
+- **Every mutating tool must consider `followUps`/`followUpsFor`.** These are the one-tap next-step buttons (or the follow-up question a summary reads out) shown after the tool runs — e.g. logging a period day without a flow offers "Log today's flow"; logging a set offers "Finish workout". Declare `followUps` (static) when the next step is always relevant, or `followUpsFor(output, ctx)` (self-aware) when it depends on the result (e.g. only offer it when a field is still missing, or hide it once its own action is a no-op). Only offer a follow-up whose `prompt` can be resolved without an id the Planner doesn't have (read tools and by-name lookups are safe; anything needing a specific record id usually isn't). This is not optional polish — a tool with no next-step story leaves the conversation a dead end. See `skills/wellness/src/tools.ts`'s `wellness.log_day` for the canonical self-aware example.
 
 ```ts
 interface Tool<I, O> {
@@ -412,6 +413,8 @@ interface Tool<I, O> {
   requiredCapability: CapabilityKey;   // 'grocery.order'
   idempotent: boolean;
   requiresConfirmation: boolean;
+  followUps?: FollowUpSuggestion[];              // static next-step buttons
+  followUpsFor?(output: O, ctx: UnifiedContext): FollowUpSuggestion[]; // computed from this run's result
   handler(ctx: UnifiedContext, args: I): Promise<O>;
 }
 ```
